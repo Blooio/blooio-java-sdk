@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.3 (2025-11-14)
+
+Full Changelog: [v0.0.2...v0.0.3](https://github.com/Blooio/blooio-java-sdk/compare/v0.0.2...v0.0.3)
+
+### Bug Fixes
+
+* **client:** multi-value header serialization ([24c589f](https://github.com/Blooio/blooio-java-sdk/commit/24c589f877041ebe010f412841cc69302640f301))
+
 ## 0.0.2 (2025-10-17)
 
 Full Changelog: [v0.0.1...v0.0.2](https://github.com/Blooio/blooio-java-sdk/compare/v0.0.1...v0.0.2)
