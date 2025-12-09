@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.0.4 (2025-12-03)
+
+Full Changelog: [v0.0.3...v0.0.4](https://github.com/Blooio/blooio-java-sdk/compare/v0.0.3...v0.0.4)
+
+### Bug Fixes
+
+* **client:** cancel okhttp call when future cancelled ([7b9cd25](https://github.com/Blooio/blooio-java-sdk/commit/7b9cd254b0da4b4302ac19f48b58ef9eea1b9f4e))
+
+
+### Documentation
+
+* remove `$` for better copy-pasteabality ([1ebe650](https://github.com/Blooio/blooio-java-sdk/commit/1ebe65054dad73a1bd60b26fbbed197cc48c0342))
+
 ## 0.0.3 (2025-11-14)
 
 Full Changelog: [v0.0.2...v0.0.3](https://github.com/Blooio/blooio-java-sdk/compare/v0.0.2...v0.0.3)
