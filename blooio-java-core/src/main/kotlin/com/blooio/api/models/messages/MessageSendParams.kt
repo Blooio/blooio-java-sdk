@@ -56,7 +56,14 @@ private constructor(
      */
     fun attachments(): Optional<List<String>> = body.attachments()
 
-    /** Arbitrary key/value pairs to associate with the message. */
+    /**
+     * Arbitrary key/value pairs to associate with the message.
+     *
+     * This arbitrary value can be deserialized into a custom type using the `convert` method:
+     * ```java
+     * MyClass myObject = messageSendParams.metadata().convert(MyClass.class);
+     * ```
+     */
     fun _metadata(): JsonValue = body._metadata()
 
     /**
@@ -377,7 +384,14 @@ private constructor(
          */
         fun attachments(): Optional<List<String>> = attachments.getOptional("attachments")
 
-        /** Arbitrary key/value pairs to associate with the message. */
+        /**
+         * Arbitrary key/value pairs to associate with the message.
+         *
+         * This arbitrary value can be deserialized into a custom type using the `convert` method:
+         * ```java
+         * MyClass myObject = body.metadata().convert(MyClass.class);
+         * ```
+         */
         @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
 
         /**

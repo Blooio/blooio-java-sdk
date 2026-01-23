@@ -71,7 +71,14 @@ private constructor(
     fun integrationDetails(): Optional<IntegrationDetails> =
         integrationDetails.getOptional("integration_details")
 
-    /** Custom metadata associated with the API key. */
+    /**
+     * Custom metadata associated with the API key.
+     *
+     * This arbitrary value can be deserialized into a custom type using the `convert` method:
+     * ```java
+     * MyClass myObject = meRetrieveResponse.metadata().convert(MyClass.class);
+     * ```
+     */
     @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
 
     /**
@@ -614,7 +621,14 @@ private constructor(
         fun customerWebhookUrl(): Optional<String> =
             customerWebhookUrl.getOptional("customer_webhook_url")
 
-        /** Integration-specific metadata. */
+        /**
+         * Integration-specific metadata.
+         *
+         * This arbitrary value can be deserialized into a custom type using the `convert` method:
+         * ```java
+         * MyClass myObject = integrationDetails.metadata().convert(MyClass.class);
+         * ```
+         */
         @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
 
         /**
