@@ -97,7 +97,14 @@ private constructor(
      */
     fun messageId(): Optional<String> = messageId.getOptional("message_id")
 
-    /** Original metadata provided plus system generated fields. */
+    /**
+     * Original metadata provided plus system generated fields.
+     *
+     * This arbitrary value can be deserialized into a custom type using the `convert` method:
+     * ```java
+     * MyClass myObject = messageRetrieveResponse.metadata().convert(MyClass.class);
+     * ```
+     */
     @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
 
     /**
