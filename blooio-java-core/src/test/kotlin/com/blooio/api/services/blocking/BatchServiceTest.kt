@@ -2,23 +2,16 @@
 
 package com.blooio.api.services.blocking
 
-import com.blooio.api.TestServerExtension
 import com.blooio.api.client.okhttp.BlooioOkHttpClient
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(TestServerExtension::class)
 internal class BatchServiceTest {
 
     @Disabled("Prism tests are disabled")
     @Test
     fun create() {
-        val client =
-            BlooioOkHttpClient.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val batchService = client.batches()
 
         batchService.create()
@@ -27,11 +20,7 @@ internal class BatchServiceTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun retrieve() {
-        val client =
-            BlooioOkHttpClient.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val batchService = client.batches()
 
         batchService.retrieve("batchId")
@@ -40,11 +29,7 @@ internal class BatchServiceTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun listMessages() {
-        val client =
-            BlooioOkHttpClient.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val batchService = client.batches()
 
         batchService.listMessages("batchId")
@@ -53,11 +38,7 @@ internal class BatchServiceTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun retrieveStatus() {
-        val client =
-            BlooioOkHttpClient.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val batchService = client.batches()
 
         batchService.retrieveStatus("batchId")
