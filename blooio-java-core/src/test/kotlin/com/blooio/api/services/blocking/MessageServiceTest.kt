@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 internal class MessageServiceTest {
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun retrieve() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
@@ -21,7 +21,7 @@ internal class MessageServiceTest {
         message.validate()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun cancel() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
@@ -32,7 +32,7 @@ internal class MessageServiceTest {
         response.validate()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun getStatus() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
@@ -43,7 +43,7 @@ internal class MessageServiceTest {
         response.validate()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun send() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()

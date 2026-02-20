@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 internal class WebhookServiceTest {
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun retrieve() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
@@ -20,7 +20,7 @@ internal class WebhookServiceTest {
         webhook.validate()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun update() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
