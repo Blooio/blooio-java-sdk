@@ -2,23 +2,16 @@
 
 package com.blooio.api.services.async
 
-import com.blooio.api.TestServerExtension
 import com.blooio.api.client.okhttp.BlooioOkHttpClientAsync
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(TestServerExtension::class)
 internal class BatchServiceAsyncTest {
 
     @Disabled("Prism tests are disabled")
     @Test
     fun create() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val batchServiceAsync = client.batches()
 
         val future = batchServiceAsync.create()
@@ -29,11 +22,7 @@ internal class BatchServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun retrieve() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val batchServiceAsync = client.batches()
 
         val future = batchServiceAsync.retrieve("batchId")
@@ -44,11 +33,7 @@ internal class BatchServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun listMessages() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val batchServiceAsync = client.batches()
 
         val future = batchServiceAsync.listMessages("batchId")
@@ -59,11 +44,7 @@ internal class BatchServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun retrieveStatus() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val batchServiceAsync = client.batches()
 
         val future = batchServiceAsync.retrieveStatus("batchId")

@@ -2,25 +2,18 @@
 
 package com.blooio.api.services.async
 
-import com.blooio.api.TestServerExtension
 import com.blooio.api.client.okhttp.BlooioOkHttpClientAsync
 import com.blooio.api.core.JsonValue
 import com.blooio.api.models.messages.MessageSendParams
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(TestServerExtension::class)
 internal class MessageServiceAsyncTest {
 
     @Disabled("Prism tests are disabled")
     @Test
     fun retrieve() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val messageServiceAsync = client.messages()
 
         val messageFuture = messageServiceAsync.retrieve("messageId")
@@ -32,11 +25,7 @@ internal class MessageServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun cancel() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val messageServiceAsync = client.messages()
 
         val responseFuture = messageServiceAsync.cancel("messageId")
@@ -48,11 +37,7 @@ internal class MessageServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun getStatus() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val messageServiceAsync = client.messages()
 
         val responseFuture = messageServiceAsync.getStatus("messageId")
@@ -64,11 +49,7 @@ internal class MessageServiceAsyncTest {
     @Disabled("Prism tests are disabled")
     @Test
     fun send() {
-        val client =
-            BlooioOkHttpClientAsync.builder()
-                .baseUrl(TestServerExtension.BASE_URL)
-                .apiKey("My API Key")
-                .build()
+        val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val messageServiceAsync = client.messages()
 
         val responseFuture =
