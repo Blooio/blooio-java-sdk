@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 internal class ContactServiceTest {
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun checkCapabilities() {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()

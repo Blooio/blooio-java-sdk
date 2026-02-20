@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 internal class BatchServiceAsyncTest {
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun create() {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
@@ -19,7 +19,7 @@ internal class BatchServiceAsyncTest {
         val response = future.get()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun retrieve() {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
@@ -30,7 +30,7 @@ internal class BatchServiceAsyncTest {
         val response = future.get()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun listMessages() {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
@@ -41,7 +41,7 @@ internal class BatchServiceAsyncTest {
         val response = future.get()
     }
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun retrieveStatus() {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()

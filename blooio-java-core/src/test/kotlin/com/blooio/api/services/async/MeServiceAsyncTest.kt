@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 internal class MeServiceAsyncTest {
 
-    @Disabled("Prism tests are disabled")
+    @Disabled("Mock server tests are disabled")
     @Test
     fun retrieve() {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
