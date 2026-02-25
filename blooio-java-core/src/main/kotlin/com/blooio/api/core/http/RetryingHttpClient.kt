@@ -1,3 +1,5 @@
+// File generated from our OpenAPI spec by Stainless.
+
 package com.blooio.api.core.http
 
 import com.blooio.api.core.DefaultSleeper
