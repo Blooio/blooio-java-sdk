@@ -46,14 +46,18 @@ interface BlooioClient {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient
 
+    /** Account and API key information */
     fun me(): MeService
 
+    /** Contact-related operations */
     fun contacts(): ContactService
 
+    /** Send and manage individual messages */
     fun messages(): MessageService
 
     fun config(): ConfigService
 
+    /** Bulk/batch operations (stubbed) */
     fun batches(): BatchService
 
     /**
@@ -79,14 +83,18 @@ interface BlooioClient {
          */
         fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient.WithRawResponse
 
+        /** Account and API key information */
         fun me(): MeService.WithRawResponse
 
+        /** Contact-related operations */
         fun contacts(): ContactService.WithRawResponse
 
+        /** Send and manage individual messages */
         fun messages(): MessageService.WithRawResponse
 
         fun config(): ConfigService.WithRawResponse
 
+        /** Bulk/batch operations (stubbed) */
         fun batches(): BatchService.WithRawResponse
     }
 }

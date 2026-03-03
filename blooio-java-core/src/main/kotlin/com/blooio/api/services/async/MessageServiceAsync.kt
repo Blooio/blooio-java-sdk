@@ -16,6 +16,7 @@ import com.blooio.api.models.messages.MessageSendResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Send and manage individual messages */
 interface MessageServiceAsync {
 
     /**

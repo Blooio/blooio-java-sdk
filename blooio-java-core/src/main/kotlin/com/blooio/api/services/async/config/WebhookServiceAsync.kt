@@ -12,6 +12,7 @@ import com.blooio.api.models.config.webhook.WebhookUpdateResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Account-level configuration */
 interface WebhookServiceAsync {
 
     /**

@@ -46,14 +46,18 @@ interface BlooioClientAsync {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClientAsync
 
+    /** Account and API key information */
     fun me(): MeServiceAsync
 
+    /** Contact-related operations */
     fun contacts(): ContactServiceAsync
 
+    /** Send and manage individual messages */
     fun messages(): MessageServiceAsync
 
     fun config(): ConfigServiceAsync
 
+    /** Bulk/batch operations (stubbed) */
     fun batches(): BatchServiceAsync
 
     /**
@@ -81,14 +85,18 @@ interface BlooioClientAsync {
             modifier: Consumer<ClientOptions.Builder>
         ): BlooioClientAsync.WithRawResponse
 
+        /** Account and API key information */
         fun me(): MeServiceAsync.WithRawResponse
 
+        /** Contact-related operations */
         fun contacts(): ContactServiceAsync.WithRawResponse
 
+        /** Send and manage individual messages */
         fun messages(): MessageServiceAsync.WithRawResponse
 
         fun config(): ConfigServiceAsync.WithRawResponse
 
+        /** Bulk/batch operations (stubbed) */
         fun batches(): BatchServiceAsync.WithRawResponse
     }
 }

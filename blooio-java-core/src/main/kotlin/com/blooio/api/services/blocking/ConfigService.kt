@@ -20,6 +20,7 @@ interface ConfigService {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): ConfigService
 
+    /** Account-level configuration */
     fun webhook(): WebhookService
 
     /** A view of [ConfigService] that provides access to raw HTTP responses for each method. */
@@ -32,6 +33,7 @@ interface ConfigService {
          */
         fun withOptions(modifier: Consumer<ClientOptions.Builder>): ConfigService.WithRawResponse
 
+        /** Account-level configuration */
         fun webhook(): WebhookService.WithRawResponse
     }
 }

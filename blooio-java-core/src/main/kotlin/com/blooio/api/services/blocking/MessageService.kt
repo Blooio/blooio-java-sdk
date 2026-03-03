@@ -16,6 +16,7 @@ import com.blooio.api.models.messages.MessageSendResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
+/** Send and manage individual messages */
 interface MessageService {
 
     /**

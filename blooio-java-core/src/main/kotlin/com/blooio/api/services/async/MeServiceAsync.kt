@@ -10,6 +10,7 @@ import com.blooio.api.models.me.MeRetrieveResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Account and API key information */
 interface MeServiceAsync {
 
     /**

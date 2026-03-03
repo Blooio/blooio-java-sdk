@@ -20,6 +20,7 @@ import com.blooio.api.models.contacts.ContactCheckCapabilitiesResponse
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
+/** Contact-related operations */
 class ContactServiceImpl internal constructor(private val clientOptions: ClientOptions) :
     ContactService {
 

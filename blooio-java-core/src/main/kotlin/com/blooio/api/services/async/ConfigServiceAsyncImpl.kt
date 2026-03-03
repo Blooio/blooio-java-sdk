@@ -21,6 +21,7 @@ class ConfigServiceAsyncImpl internal constructor(private val clientOptions: Cli
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): ConfigServiceAsync =
         ConfigServiceAsyncImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Account-level configuration */
     override fun webhook(): WebhookServiceAsync = webhook
 
     class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :
@@ -37,6 +38,7 @@ class ConfigServiceAsyncImpl internal constructor(private val clientOptions: Cli
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
+        /** Account-level configuration */
         override fun webhook(): WebhookServiceAsync.WithRawResponse = webhook
     }
 }

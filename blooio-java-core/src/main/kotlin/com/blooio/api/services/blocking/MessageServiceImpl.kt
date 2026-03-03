@@ -27,6 +27,7 @@ import com.blooio.api.models.messages.MessageSendResponse
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
+/** Send and manage individual messages */
 class MessageServiceImpl internal constructor(private val clientOptions: ClientOptions) :
     MessageService {
 

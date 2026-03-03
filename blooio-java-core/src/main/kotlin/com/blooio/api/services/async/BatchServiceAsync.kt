@@ -12,6 +12,7 @@ import com.blooio.api.models.batches.BatchRetrieveStatusParams
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Bulk/batch operations (stubbed) */
 interface BatchServiceAsync {
 
     /**

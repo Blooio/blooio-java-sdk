@@ -20,6 +20,7 @@ interface ConfigServiceAsync {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): ConfigServiceAsync
 
+    /** Account-level configuration */
     fun webhook(): WebhookServiceAsync
 
     /**
@@ -36,6 +37,7 @@ interface ConfigServiceAsync {
             modifier: Consumer<ClientOptions.Builder>
         ): ConfigServiceAsync.WithRawResponse
 
+        /** Account-level configuration */
         fun webhook(): WebhookServiceAsync.WithRawResponse
     }
 }

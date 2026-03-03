@@ -18,6 +18,7 @@ import com.blooio.api.models.me.MeRetrieveParams
 import com.blooio.api.models.me.MeRetrieveResponse
 import java.util.function.Consumer
 
+/** Account and API key information */
 class MeServiceImpl internal constructor(private val clientOptions: ClientOptions) : MeService {
 
     private val withRawResponse: MeService.WithRawResponse by lazy {

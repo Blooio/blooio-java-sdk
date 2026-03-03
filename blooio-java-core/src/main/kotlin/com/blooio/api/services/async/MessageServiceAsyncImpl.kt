@@ -28,6 +28,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
+/** Send and manage individual messages */
 class MessageServiceAsyncImpl internal constructor(private val clientOptions: ClientOptions) :
     MessageServiceAsync {
 

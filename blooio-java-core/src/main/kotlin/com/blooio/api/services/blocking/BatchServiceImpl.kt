@@ -22,6 +22,7 @@ import com.blooio.api.models.batches.BatchRetrieveStatusParams
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
+/** Bulk/batch operations (stubbed) */
 class BatchServiceImpl internal constructor(private val clientOptions: ClientOptions) :
     BatchService {
 

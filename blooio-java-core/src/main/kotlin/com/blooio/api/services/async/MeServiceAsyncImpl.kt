@@ -19,6 +19,7 @@ import com.blooio.api.models.me.MeRetrieveResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Account and API key information */
 class MeServiceAsyncImpl internal constructor(private val clientOptions: ClientOptions) :
     MeServiceAsync {
 

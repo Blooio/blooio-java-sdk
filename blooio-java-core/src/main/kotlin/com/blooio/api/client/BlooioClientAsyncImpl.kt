@@ -58,14 +58,18 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClientAsync =
         BlooioClientAsyncImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Account and API key information */
     override fun me(): MeServiceAsync = me
 
+    /** Contact-related operations */
     override fun contacts(): ContactServiceAsync = contacts
 
+    /** Send and manage individual messages */
     override fun messages(): MessageServiceAsync = messages
 
     override fun config(): ConfigServiceAsync = config
 
+    /** Bulk/batch operations (stubbed) */
     override fun batches(): BatchServiceAsync = batches
 
     override fun close() = clientOptions.close()
@@ -100,14 +104,18 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
+        /** Account and API key information */
         override fun me(): MeServiceAsync.WithRawResponse = me
 
+        /** Contact-related operations */
         override fun contacts(): ContactServiceAsync.WithRawResponse = contacts
 
+        /** Send and manage individual messages */
         override fun messages(): MessageServiceAsync.WithRawResponse = messages
 
         override fun config(): ConfigServiceAsync.WithRawResponse = config
 
+        /** Bulk/batch operations (stubbed) */
         override fun batches(): BatchServiceAsync.WithRawResponse = batches
     }
 }
