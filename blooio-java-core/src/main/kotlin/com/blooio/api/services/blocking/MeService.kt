@@ -10,6 +10,7 @@ import com.blooio.api.models.me.MeRetrieveResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
+/** Account and API key information */
 interface MeService {
 
     /**

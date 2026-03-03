@@ -10,6 +10,7 @@ import com.blooio.api.models.contacts.ContactCheckCapabilitiesResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
+/** Contact-related operations */
 interface ContactService {
 
     /**

@@ -10,6 +10,7 @@ import com.blooio.api.models.contacts.ContactCheckCapabilitiesResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Contact-related operations */
 interface ContactServiceAsync {
 
     /**

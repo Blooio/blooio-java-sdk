@@ -12,6 +12,7 @@ import com.blooio.api.models.config.webhook.WebhookUpdateResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
+/** Account-level configuration */
 interface WebhookService {
 
     /**

@@ -50,14 +50,18 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient =
         BlooioClientImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Account and API key information */
     override fun me(): MeService = me
 
+    /** Contact-related operations */
     override fun contacts(): ContactService = contacts
 
+    /** Send and manage individual messages */
     override fun messages(): MessageService = messages
 
     override fun config(): ConfigService = config
 
+    /** Bulk/batch operations (stubbed) */
     override fun batches(): BatchService = batches
 
     override fun close() = clientOptions.close()
@@ -92,14 +96,18 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
+        /** Account and API key information */
         override fun me(): MeService.WithRawResponse = me
 
+        /** Contact-related operations */
         override fun contacts(): ContactService.WithRawResponse = contacts
 
+        /** Send and manage individual messages */
         override fun messages(): MessageService.WithRawResponse = messages
 
         override fun config(): ConfigService.WithRawResponse = config
 
+        /** Bulk/batch operations (stubbed) */
         override fun batches(): BatchService.WithRawResponse = batches
     }
 }
