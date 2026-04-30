@@ -9,14 +9,14 @@ internal class ContactCheckCapabilitiesParamsTest {
 
     @Test
     fun create() {
-        ContactCheckCapabilitiesParams.builder().contact("contact").build()
+        ContactCheckCapabilitiesParams.builder().contactId("%2B15551234567").build()
     }
 
     @Test
     fun pathParams() {
-        val params = ContactCheckCapabilitiesParams.builder().contact("contact").build()
+        val params = ContactCheckCapabilitiesParams.builder().contactId("%2B15551234567").build()
 
-        assertThat(params._pathParam(0)).isEqualTo("contact")
+        assertThat(params._pathParam(0)).isEqualTo("%2B15551234567")
         // out-of-bound path param
         assertThat(params._pathParam(1)).isEqualTo("")
     }

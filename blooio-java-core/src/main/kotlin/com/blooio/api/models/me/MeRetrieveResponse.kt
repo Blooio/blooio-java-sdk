@@ -2,6 +2,7 @@
 
 package com.blooio.api.models.me
 
+import com.blooio.api.core.Enum
 import com.blooio.api.core.ExcludeMissing
 import com.blooio.api.core.JsonField
 import com.blooio.api.core.JsonMissing
@@ -18,15 +19,22 @@ import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
+/**
+ * Response depends on auth_type. For 'api_key': includes full API key details. For 'dashboard':
+ * includes user_id and organization info only.
+ */
 class MeRetrieveResponse
 @JsonCreator(mode = JsonCreator.Mode.DISABLED)
 private constructor(
     private val apiKey: JsonField<String>,
+    private val authType: JsonField<AuthType>,
     private val devices: JsonField<List<Device>>,
-    private val integrationDetails: JsonField<IntegrationDetails>,
+    private val integrationDetails: JsonValue,
     private val metadata: JsonValue,
-    private val plan: JsonField<String>,
+    private val organization: JsonField<Organization>,
+    private val organizationId: JsonField<String>,
     private val usage: JsonField<Usage>,
+    private val userId: JsonField<String>,
     private val valid: JsonField<Boolean>,
     private val additionalProperties: MutableMap<String, JsonValue>,
 ) {
@@ -34,20 +42,39 @@ private constructor(
     @JsonCreator
     private constructor(
         @JsonProperty("api_key") @ExcludeMissing apiKey: JsonField<String> = JsonMissing.of(),
+        @JsonProperty("auth_type") @ExcludeMissing authType: JsonField<AuthType> = JsonMissing.of(),
         @JsonProperty("devices")
         @ExcludeMissing
         devices: JsonField<List<Device>> = JsonMissing.of(),
         @JsonProperty("integration_details")
         @ExcludeMissing
-        integrationDetails: JsonField<IntegrationDetails> = JsonMissing.of(),
+        integrationDetails: JsonValue = JsonMissing.of(),
         @JsonProperty("metadata") @ExcludeMissing metadata: JsonValue = JsonMissing.of(),
-        @JsonProperty("plan") @ExcludeMissing plan: JsonField<String> = JsonMissing.of(),
+        @JsonProperty("organization")
+        @ExcludeMissing
+        organization: JsonField<Organization> = JsonMissing.of(),
+        @JsonProperty("organization_id")
+        @ExcludeMissing
+        organizationId: JsonField<String> = JsonMissing.of(),
         @JsonProperty("usage") @ExcludeMissing usage: JsonField<Usage> = JsonMissing.of(),
+        @JsonProperty("user_id") @ExcludeMissing userId: JsonField<String> = JsonMissing.of(),
         @JsonProperty("valid") @ExcludeMissing valid: JsonField<Boolean> = JsonMissing.of(),
-    ) : this(apiKey, devices, integrationDetails, metadata, plan, usage, valid, mutableMapOf())
+    ) : this(
+        apiKey,
+        authType,
+        devices,
+        integrationDetails,
+        metadata,
+        organization,
+        organizationId,
+        usage,
+        userId,
+        valid,
+        mutableMapOf(),
+    )
 
     /**
-     * The API key used for authentication.
+     * The API key (only for api_key auth)
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -55,7 +82,15 @@ private constructor(
     fun apiKey(): Optional<String> = apiKey.getOptional("api_key")
 
     /**
-     * List of devices associated with this API key.
+     * Type of authentication used
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun authType(): Optional<AuthType> = authType.getOptional("auth_type")
+
+    /**
+     * List of devices associated with this API key (only for api_key auth)
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -63,16 +98,19 @@ private constructor(
     fun devices(): Optional<List<Device>> = devices.getOptional("devices")
 
     /**
-     * Integration-specific details (GHL or API integration).
+     * Integration details if the API key is associated with an integration (only for api_key auth)
      *
-     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-     *   server responded with an unexpected value).
+     * This arbitrary value can be deserialized into a custom type using the `convert` method:
+     * ```java
+     * MyClass myObject = meRetrieveResponse.integrationDetails().convert(MyClass.class);
+     * ```
      */
-    fun integrationDetails(): Optional<IntegrationDetails> =
-        integrationDetails.getOptional("integration_details")
+    @JsonProperty("integration_details")
+    @ExcludeMissing
+    fun _integrationDetails(): JsonValue = integrationDetails
 
     /**
-     * Custom metadata associated with the API key.
+     * API key metadata (only for api_key auth)
      *
      * This arbitrary value can be deserialized into a custom type using the `convert` method:
      * ```java
@@ -82,15 +120,21 @@ private constructor(
     @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
 
     /**
-     * The plan associated with this API key.
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun organization(): Optional<Organization> = organization.getOptional("organization")
+
+    /**
+     * Organization ID (only for api_key auth)
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
      */
-    fun plan(): Optional<String> = plan.getOptional("plan")
+    fun organizationId(): Optional<String> = organizationId.getOptional("organization_id")
 
     /**
-     * Usage statistics for this API key.
+     * Usage statistics (only for api_key auth)
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -98,7 +142,15 @@ private constructor(
     fun usage(): Optional<Usage> = usage.getOptional("usage")
 
     /**
-     * Whether the API key is valid.
+     * User ID (only for dashboard auth)
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun userId(): Optional<String> = userId.getOptional("user_id")
+
+    /**
+     * Whether the API key is valid (only for api_key auth)
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -113,6 +165,13 @@ private constructor(
     @JsonProperty("api_key") @ExcludeMissing fun _apiKey(): JsonField<String> = apiKey
 
     /**
+     * Returns the raw JSON value of [authType].
+     *
+     * Unlike [authType], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    @JsonProperty("auth_type") @ExcludeMissing fun _authType(): JsonField<AuthType> = authType
+
+    /**
      * Returns the raw JSON value of [devices].
      *
      * Unlike [devices], this method doesn't throw if the JSON field has an unexpected type.
@@ -120,21 +179,22 @@ private constructor(
     @JsonProperty("devices") @ExcludeMissing fun _devices(): JsonField<List<Device>> = devices
 
     /**
-     * Returns the raw JSON value of [integrationDetails].
+     * Returns the raw JSON value of [organization].
      *
-     * Unlike [integrationDetails], this method doesn't throw if the JSON field has an unexpected
-     * type.
+     * Unlike [organization], this method doesn't throw if the JSON field has an unexpected type.
      */
-    @JsonProperty("integration_details")
+    @JsonProperty("organization")
     @ExcludeMissing
-    fun _integrationDetails(): JsonField<IntegrationDetails> = integrationDetails
+    fun _organization(): JsonField<Organization> = organization
 
     /**
-     * Returns the raw JSON value of [plan].
+     * Returns the raw JSON value of [organizationId].
      *
-     * Unlike [plan], this method doesn't throw if the JSON field has an unexpected type.
+     * Unlike [organizationId], this method doesn't throw if the JSON field has an unexpected type.
      */
-    @JsonProperty("plan") @ExcludeMissing fun _plan(): JsonField<String> = plan
+    @JsonProperty("organization_id")
+    @ExcludeMissing
+    fun _organizationId(): JsonField<String> = organizationId
 
     /**
      * Returns the raw JSON value of [usage].
@@ -142,6 +202,13 @@ private constructor(
      * Unlike [usage], this method doesn't throw if the JSON field has an unexpected type.
      */
     @JsonProperty("usage") @ExcludeMissing fun _usage(): JsonField<Usage> = usage
+
+    /**
+     * Returns the raw JSON value of [userId].
+     *
+     * Unlike [userId], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    @JsonProperty("user_id") @ExcludeMissing fun _userId(): JsonField<String> = userId
 
     /**
      * Returns the raw JSON value of [valid].
@@ -172,27 +239,33 @@ private constructor(
     class Builder internal constructor() {
 
         private var apiKey: JsonField<String> = JsonMissing.of()
+        private var authType: JsonField<AuthType> = JsonMissing.of()
         private var devices: JsonField<MutableList<Device>>? = null
-        private var integrationDetails: JsonField<IntegrationDetails> = JsonMissing.of()
+        private var integrationDetails: JsonValue = JsonMissing.of()
         private var metadata: JsonValue = JsonMissing.of()
-        private var plan: JsonField<String> = JsonMissing.of()
+        private var organization: JsonField<Organization> = JsonMissing.of()
+        private var organizationId: JsonField<String> = JsonMissing.of()
         private var usage: JsonField<Usage> = JsonMissing.of()
+        private var userId: JsonField<String> = JsonMissing.of()
         private var valid: JsonField<Boolean> = JsonMissing.of()
         private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
         @JvmSynthetic
         internal fun from(meRetrieveResponse: MeRetrieveResponse) = apply {
             apiKey = meRetrieveResponse.apiKey
+            authType = meRetrieveResponse.authType
             devices = meRetrieveResponse.devices.map { it.toMutableList() }
             integrationDetails = meRetrieveResponse.integrationDetails
             metadata = meRetrieveResponse.metadata
-            plan = meRetrieveResponse.plan
+            organization = meRetrieveResponse.organization
+            organizationId = meRetrieveResponse.organizationId
             usage = meRetrieveResponse.usage
+            userId = meRetrieveResponse.userId
             valid = meRetrieveResponse.valid
             additionalProperties = meRetrieveResponse.additionalProperties.toMutableMap()
         }
 
-        /** The API key used for authentication. */
+        /** The API key (only for api_key auth) */
         fun apiKey(apiKey: String) = apiKey(JsonField.of(apiKey))
 
         /**
@@ -203,7 +276,19 @@ private constructor(
          */
         fun apiKey(apiKey: JsonField<String>) = apply { this.apiKey = apiKey }
 
-        /** List of devices associated with this API key. */
+        /** Type of authentication used */
+        fun authType(authType: AuthType) = authType(JsonField.of(authType))
+
+        /**
+         * Sets [Builder.authType] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.authType] with a well-typed [AuthType] value instead.
+         * This method is primarily for setting the field to an undocumented or not yet supported
+         * value.
+         */
+        fun authType(authType: JsonField<AuthType>) = apply { this.authType = authType }
+
+        /** List of devices associated with this API key (only for api_key auth) */
         fun devices(devices: List<Device>) = devices(JsonField.of(devices))
 
         /**
@@ -229,42 +314,45 @@ private constructor(
                 }
         }
 
-        /** Integration-specific details (GHL or API integration). */
-        fun integrationDetails(integrationDetails: IntegrationDetails?) =
-            integrationDetails(JsonField.ofNullable(integrationDetails))
-
         /**
-         * Alias for calling [Builder.integrationDetails] with `integrationDetails.orElse(null)`.
+         * Integration details if the API key is associated with an integration (only for api_key
+         * auth)
          */
-        fun integrationDetails(integrationDetails: Optional<IntegrationDetails>) =
-            integrationDetails(integrationDetails.getOrNull())
-
-        /**
-         * Sets [Builder.integrationDetails] to an arbitrary JSON value.
-         *
-         * You should usually call [Builder.integrationDetails] with a well-typed
-         * [IntegrationDetails] value instead. This method is primarily for setting the field to an
-         * undocumented or not yet supported value.
-         */
-        fun integrationDetails(integrationDetails: JsonField<IntegrationDetails>) = apply {
+        fun integrationDetails(integrationDetails: JsonValue) = apply {
             this.integrationDetails = integrationDetails
         }
 
-        /** Custom metadata associated with the API key. */
+        /** API key metadata (only for api_key auth) */
         fun metadata(metadata: JsonValue) = apply { this.metadata = metadata }
 
-        /** The plan associated with this API key. */
-        fun plan(plan: String) = plan(JsonField.of(plan))
+        fun organization(organization: Organization) = organization(JsonField.of(organization))
 
         /**
-         * Sets [Builder.plan] to an arbitrary JSON value.
+         * Sets [Builder.organization] to an arbitrary JSON value.
          *
-         * You should usually call [Builder.plan] with a well-typed [String] value instead. This
-         * method is primarily for setting the field to an undocumented or not yet supported value.
+         * You should usually call [Builder.organization] with a well-typed [Organization] value
+         * instead. This method is primarily for setting the field to an undocumented or not yet
+         * supported value.
          */
-        fun plan(plan: JsonField<String>) = apply { this.plan = plan }
+        fun organization(organization: JsonField<Organization>) = apply {
+            this.organization = organization
+        }
 
-        /** Usage statistics for this API key. */
+        /** Organization ID (only for api_key auth) */
+        fun organizationId(organizationId: String) = organizationId(JsonField.of(organizationId))
+
+        /**
+         * Sets [Builder.organizationId] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.organizationId] with a well-typed [String] value
+         * instead. This method is primarily for setting the field to an undocumented or not yet
+         * supported value.
+         */
+        fun organizationId(organizationId: JsonField<String>) = apply {
+            this.organizationId = organizationId
+        }
+
+        /** Usage statistics (only for api_key auth) */
         fun usage(usage: Usage) = usage(JsonField.of(usage))
 
         /**
@@ -275,7 +363,21 @@ private constructor(
          */
         fun usage(usage: JsonField<Usage>) = apply { this.usage = usage }
 
-        /** Whether the API key is valid. */
+        /** User ID (only for dashboard auth) */
+        fun userId(userId: String?) = userId(JsonField.ofNullable(userId))
+
+        /** Alias for calling [Builder.userId] with `userId.orElse(null)`. */
+        fun userId(userId: Optional<String>) = userId(userId.getOrNull())
+
+        /**
+         * Sets [Builder.userId] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.userId] with a well-typed [String] value instead. This
+         * method is primarily for setting the field to an undocumented or not yet supported value.
+         */
+        fun userId(userId: JsonField<String>) = apply { this.userId = userId }
+
+        /** Whether the API key is valid (only for api_key auth) */
         fun valid(valid: Boolean) = valid(JsonField.of(valid))
 
         /**
@@ -313,11 +415,14 @@ private constructor(
         fun build(): MeRetrieveResponse =
             MeRetrieveResponse(
                 apiKey,
+                authType,
                 (devices ?: JsonMissing.of()).map { it.toImmutable() },
                 integrationDetails,
                 metadata,
-                plan,
+                organization,
+                organizationId,
                 usage,
+                userId,
                 valid,
                 additionalProperties.toMutableMap(),
             )
@@ -331,10 +436,12 @@ private constructor(
         }
 
         apiKey()
+        authType().ifPresent { it.validate() }
         devices().ifPresent { it.forEach { it.validate() } }
-        integrationDetails().ifPresent { it.validate() }
-        plan()
+        organization().ifPresent { it.validate() }
+        organizationId()
         usage().ifPresent { it.validate() }
+        userId()
         valid()
         validated = true
     }
@@ -355,66 +462,181 @@ private constructor(
     @JvmSynthetic
     internal fun validity(): Int =
         (if (apiKey.asKnown().isPresent) 1 else 0) +
+            (authType.asKnown().getOrNull()?.validity() ?: 0) +
             (devices.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
-            (integrationDetails.asKnown().getOrNull()?.validity() ?: 0) +
-            (if (plan.asKnown().isPresent) 1 else 0) +
+            (organization.asKnown().getOrNull()?.validity() ?: 0) +
+            (if (organizationId.asKnown().isPresent) 1 else 0) +
             (usage.asKnown().getOrNull()?.validity() ?: 0) +
+            (if (userId.asKnown().isPresent) 1 else 0) +
             (if (valid.asKnown().isPresent) 1 else 0)
+
+    /** Type of authentication used */
+    class AuthType @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
+
+        /**
+         * Returns this class instance's raw value.
+         *
+         * This is usually only useful if this instance was deserialized from data that doesn't
+         * match any known member, and you want to know that value. For example, if the SDK is on an
+         * older version than the API, then the API may respond with new members that the SDK is
+         * unaware of.
+         */
+        @com.fasterxml.jackson.annotation.JsonValue fun _value(): JsonField<String> = value
+
+        companion object {
+
+            @JvmField val API_KEY = of("api_key")
+
+            @JvmField val DASHBOARD = of("dashboard")
+
+            @JvmStatic fun of(value: String) = AuthType(JsonField.of(value))
+        }
+
+        /** An enum containing [AuthType]'s known values. */
+        enum class Known {
+            API_KEY,
+            DASHBOARD,
+        }
+
+        /**
+         * An enum containing [AuthType]'s known values, as well as an [_UNKNOWN] member.
+         *
+         * An instance of [AuthType] can contain an unknown value in a couple of cases:
+         * - It was deserialized from data that doesn't match any known member. For example, if the
+         *   SDK is on an older version than the API, then the API may respond with new members that
+         *   the SDK is unaware of.
+         * - It was constructed with an arbitrary value using the [of] method.
+         */
+        enum class Value {
+            API_KEY,
+            DASHBOARD,
+            /** An enum member indicating that [AuthType] was instantiated with an unknown value. */
+            _UNKNOWN,
+        }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value, or [Value._UNKNOWN]
+         * if the class was instantiated with an unknown value.
+         *
+         * Use the [known] method instead if you're certain the value is always known or if you want
+         * to throw for the unknown case.
+         */
+        fun value(): Value =
+            when (this) {
+                API_KEY -> Value.API_KEY
+                DASHBOARD -> Value.DASHBOARD
+                else -> Value._UNKNOWN
+            }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value.
+         *
+         * Use the [value] method instead if you're uncertain the value is always known and don't
+         * want to throw for the unknown case.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value is a not a known
+         *   member.
+         */
+        fun known(): Known =
+            when (this) {
+                API_KEY -> Known.API_KEY
+                DASHBOARD -> Known.DASHBOARD
+                else -> throw BlooioInvalidDataException("Unknown AuthType: $value")
+            }
+
+        /**
+         * Returns this class instance's primitive wire representation.
+         *
+         * This differs from the [toString] method because that method is primarily for debugging
+         * and generally doesn't throw.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value does not have the
+         *   expected primitive type.
+         */
+        fun asString(): String =
+            _value().asString().orElseThrow { BlooioInvalidDataException("Value is not a String") }
+
+        private var validated: Boolean = false
+
+        fun validate(): AuthType = apply {
+            if (validated) {
+                return@apply
+            }
+
+            known()
+            validated = true
+        }
+
+        fun isValid(): Boolean =
+            try {
+                validate()
+                true
+            } catch (e: BlooioInvalidDataException) {
+                false
+            }
+
+        /**
+         * Returns a score indicating how many valid values are contained in this object
+         * recursively.
+         *
+         * Used for best match union deserialization.
+         */
+        @JvmSynthetic internal fun validity(): Int = if (value() == Value._UNKNOWN) 0 else 1
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) {
+                return true
+            }
+
+            return other is AuthType && value == other.value
+        }
+
+        override fun hashCode() = value.hashCode()
+
+        override fun toString() = value.toString()
+    }
 
     class Device
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
-        private val deviceHash: JsonField<String>,
         private val isActive: JsonField<Boolean>,
         private val lastActive: JsonField<Long>,
+        private val phoneNumber: JsonField<String>,
         private val additionalProperties: MutableMap<String, JsonValue>,
     ) {
 
         @JsonCreator
         private constructor(
-            @JsonProperty("device_hash")
-            @ExcludeMissing
-            deviceHash: JsonField<String> = JsonMissing.of(),
             @JsonProperty("is_active")
             @ExcludeMissing
             isActive: JsonField<Boolean> = JsonMissing.of(),
             @JsonProperty("last_active")
             @ExcludeMissing
             lastActive: JsonField<Long> = JsonMissing.of(),
-        ) : this(deviceHash, isActive, lastActive, mutableMapOf())
+            @JsonProperty("phone_number")
+            @ExcludeMissing
+            phoneNumber: JsonField<String> = JsonMissing.of(),
+        ) : this(isActive, lastActive, phoneNumber, mutableMapOf())
 
         /**
-         * Hashed device identifier.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun deviceHash(): Optional<String> = deviceHash.getOptional("device_hash")
-
-        /**
-         * Whether the device is currently active.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun isActive(): Optional<Boolean> = isActive.getOptional("is_active")
 
         /**
-         * Unix timestamp (ms) of last device activity.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun lastActive(): Optional<Long> = lastActive.getOptional("last_active")
 
         /**
-         * Returns the raw JSON value of [deviceHash].
+         * Phone number assigned to this device (E.164 format)
          *
-         * Unlike [deviceHash], this method doesn't throw if the JSON field has an unexpected type.
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
          */
-        @JsonProperty("device_hash")
-        @ExcludeMissing
-        fun _deviceHash(): JsonField<String> = deviceHash
+        fun phoneNumber(): Optional<String> = phoneNumber.getOptional("phone_number")
 
         /**
          * Returns the raw JSON value of [isActive].
@@ -429,6 +651,15 @@ private constructor(
          * Unlike [lastActive], this method doesn't throw if the JSON field has an unexpected type.
          */
         @JsonProperty("last_active") @ExcludeMissing fun _lastActive(): JsonField<Long> = lastActive
+
+        /**
+         * Returns the raw JSON value of [phoneNumber].
+         *
+         * Unlike [phoneNumber], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("phone_number")
+        @ExcludeMissing
+        fun _phoneNumber(): JsonField<String> = phoneNumber
 
         @JsonAnySetter
         private fun putAdditionalProperty(key: String, value: JsonValue) {
@@ -451,32 +682,19 @@ private constructor(
         /** A builder for [Device]. */
         class Builder internal constructor() {
 
-            private var deviceHash: JsonField<String> = JsonMissing.of()
             private var isActive: JsonField<Boolean> = JsonMissing.of()
             private var lastActive: JsonField<Long> = JsonMissing.of()
+            private var phoneNumber: JsonField<String> = JsonMissing.of()
             private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
             @JvmSynthetic
             internal fun from(device: Device) = apply {
-                deviceHash = device.deviceHash
                 isActive = device.isActive
                 lastActive = device.lastActive
+                phoneNumber = device.phoneNumber
                 additionalProperties = device.additionalProperties.toMutableMap()
             }
 
-            /** Hashed device identifier. */
-            fun deviceHash(deviceHash: String) = deviceHash(JsonField.of(deviceHash))
-
-            /**
-             * Sets [Builder.deviceHash] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.deviceHash] with a well-typed [String] value
-             * instead. This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun deviceHash(deviceHash: JsonField<String>) = apply { this.deviceHash = deviceHash }
-
-            /** Whether the device is currently active. */
             fun isActive(isActive: Boolean) = isActive(JsonField.of(isActive))
 
             /**
@@ -488,7 +706,6 @@ private constructor(
              */
             fun isActive(isActive: JsonField<Boolean>) = apply { this.isActive = isActive }
 
-            /** Unix timestamp (ms) of last device activity. */
             fun lastActive(lastActive: Long?) = lastActive(JsonField.ofNullable(lastActive))
 
             /**
@@ -509,6 +726,23 @@ private constructor(
              * supported value.
              */
             fun lastActive(lastActive: JsonField<Long>) = apply { this.lastActive = lastActive }
+
+            /** Phone number assigned to this device (E.164 format) */
+            fun phoneNumber(phoneNumber: String?) = phoneNumber(JsonField.ofNullable(phoneNumber))
+
+            /** Alias for calling [Builder.phoneNumber] with `phoneNumber.orElse(null)`. */
+            fun phoneNumber(phoneNumber: Optional<String>) = phoneNumber(phoneNumber.getOrNull())
+
+            /**
+             * Sets [Builder.phoneNumber] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.phoneNumber] with a well-typed [String] value
+             * instead. This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun phoneNumber(phoneNumber: JsonField<String>) = apply {
+                this.phoneNumber = phoneNumber
+            }
 
             fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
                 this.additionalProperties.clear()
@@ -535,7 +769,7 @@ private constructor(
              * Further updates to this [Builder] will not mutate the returned instance.
              */
             fun build(): Device =
-                Device(deviceHash, isActive, lastActive, additionalProperties.toMutableMap())
+                Device(isActive, lastActive, phoneNumber, additionalProperties.toMutableMap())
         }
 
         private var validated: Boolean = false
@@ -545,9 +779,9 @@ private constructor(
                 return@apply
             }
 
-            deviceHash()
             isActive()
             lastActive()
+            phoneNumber()
             validated = true
         }
 
@@ -567,9 +801,9 @@ private constructor(
          */
         @JvmSynthetic
         internal fun validity(): Int =
-            (if (deviceHash.asKnown().isPresent) 1 else 0) +
-                (if (isActive.asKnown().isPresent) 1 else 0) +
-                (if (lastActive.asKnown().isPresent) 1 else 0)
+            (if (isActive.asKnown().isPresent) 1 else 0) +
+                (if (lastActive.asKnown().isPresent) 1 else 0) +
+                (if (phoneNumber.asKnown().isPresent) 1 else 0)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) {
@@ -577,77 +811,85 @@ private constructor(
             }
 
             return other is Device &&
-                deviceHash == other.deviceHash &&
                 isActive == other.isActive &&
                 lastActive == other.lastActive &&
+                phoneNumber == other.phoneNumber &&
                 additionalProperties == other.additionalProperties
         }
 
         private val hashCode: Int by lazy {
-            Objects.hash(deviceHash, isActive, lastActive, additionalProperties)
+            Objects.hash(isActive, lastActive, phoneNumber, additionalProperties)
         }
 
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Device{deviceHash=$deviceHash, isActive=$isActive, lastActive=$lastActive, additionalProperties=$additionalProperties}"
+            "Device{isActive=$isActive, lastActive=$lastActive, phoneNumber=$phoneNumber, additionalProperties=$additionalProperties}"
     }
 
-    /** Integration-specific details (GHL or API integration). */
-    class IntegrationDetails
+    class Organization
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
-        private val customerWebhookUrl: JsonField<String>,
-        private val metadata: JsonValue,
+        private val countryCode: JsonField<String>,
+        private val createdAt: JsonField<Long>,
         private val name: JsonField<String>,
+        private val organizationId: JsonField<String>,
         private val additionalProperties: MutableMap<String, JsonValue>,
     ) {
 
         @JsonCreator
         private constructor(
-            @JsonProperty("customer_webhook_url")
+            @JsonProperty("country_code")
             @ExcludeMissing
-            customerWebhookUrl: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("metadata") @ExcludeMissing metadata: JsonValue = JsonMissing.of(),
+            countryCode: JsonField<String> = JsonMissing.of(),
+            @JsonProperty("created_at")
+            @ExcludeMissing
+            createdAt: JsonField<Long> = JsonMissing.of(),
             @JsonProperty("name") @ExcludeMissing name: JsonField<String> = JsonMissing.of(),
-        ) : this(customerWebhookUrl, metadata, name, mutableMapOf())
+            @JsonProperty("organization_id")
+            @ExcludeMissing
+            organizationId: JsonField<String> = JsonMissing.of(),
+        ) : this(countryCode, createdAt, name, organizationId, mutableMapOf())
 
         /**
-         * Webhook URL for API integrations.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
-        fun customerWebhookUrl(): Optional<String> =
-            customerWebhookUrl.getOptional("customer_webhook_url")
+        fun countryCode(): Optional<String> = countryCode.getOptional("country_code")
 
         /**
-         * Integration-specific metadata.
-         *
-         * This arbitrary value can be deserialized into a custom type using the `convert` method:
-         * ```java
-         * MyClass myObject = integrationDetails.metadata().convert(MyClass.class);
-         * ```
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
          */
-        @JsonProperty("metadata") @ExcludeMissing fun _metadata(): JsonValue = metadata
+        fun createdAt(): Optional<Long> = createdAt.getOptional("created_at")
 
         /**
-         * Name of the integration (GHL only).
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun name(): Optional<String> = name.getOptional("name")
 
         /**
-         * Returns the raw JSON value of [customerWebhookUrl].
-         *
-         * Unlike [customerWebhookUrl], this method doesn't throw if the JSON field has an
-         * unexpected type.
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
          */
-        @JsonProperty("customer_webhook_url")
+        fun organizationId(): Optional<String> = organizationId.getOptional("organization_id")
+
+        /**
+         * Returns the raw JSON value of [countryCode].
+         *
+         * Unlike [countryCode], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("country_code")
         @ExcludeMissing
-        fun _customerWebhookUrl(): JsonField<String> = customerWebhookUrl
+        fun _countryCode(): JsonField<String> = countryCode
+
+        /**
+         * Returns the raw JSON value of [createdAt].
+         *
+         * Unlike [createdAt], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("created_at") @ExcludeMissing fun _createdAt(): JsonField<Long> = createdAt
 
         /**
          * Returns the raw JSON value of [name].
@@ -655,6 +897,16 @@ private constructor(
          * Unlike [name], this method doesn't throw if the JSON field has an unexpected type.
          */
         @JsonProperty("name") @ExcludeMissing fun _name(): JsonField<String> = name
+
+        /**
+         * Returns the raw JSON value of [organizationId].
+         *
+         * Unlike [organizationId], this method doesn't throw if the JSON field has an unexpected
+         * type.
+         */
+        @JsonProperty("organization_id")
+        @ExcludeMissing
+        fun _organizationId(): JsonField<String> = organizationId
 
         @JsonAnySetter
         private fun putAdditionalProperty(key: String, value: JsonValue) {
@@ -670,45 +922,55 @@ private constructor(
 
         companion object {
 
-            /** Returns a mutable builder for constructing an instance of [IntegrationDetails]. */
+            /** Returns a mutable builder for constructing an instance of [Organization]. */
             @JvmStatic fun builder() = Builder()
         }
 
-        /** A builder for [IntegrationDetails]. */
+        /** A builder for [Organization]. */
         class Builder internal constructor() {
 
-            private var customerWebhookUrl: JsonField<String> = JsonMissing.of()
-            private var metadata: JsonValue = JsonMissing.of()
+            private var countryCode: JsonField<String> = JsonMissing.of()
+            private var createdAt: JsonField<Long> = JsonMissing.of()
             private var name: JsonField<String> = JsonMissing.of()
+            private var organizationId: JsonField<String> = JsonMissing.of()
             private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
             @JvmSynthetic
-            internal fun from(integrationDetails: IntegrationDetails) = apply {
-                customerWebhookUrl = integrationDetails.customerWebhookUrl
-                metadata = integrationDetails.metadata
-                name = integrationDetails.name
-                additionalProperties = integrationDetails.additionalProperties.toMutableMap()
+            internal fun from(organization: Organization) = apply {
+                countryCode = organization.countryCode
+                createdAt = organization.createdAt
+                name = organization.name
+                organizationId = organization.organizationId
+                additionalProperties = organization.additionalProperties.toMutableMap()
             }
 
-            /** Webhook URL for API integrations. */
-            fun customerWebhookUrl(customerWebhookUrl: String) =
-                customerWebhookUrl(JsonField.of(customerWebhookUrl))
+            fun countryCode(countryCode: String?) = countryCode(JsonField.ofNullable(countryCode))
+
+            /** Alias for calling [Builder.countryCode] with `countryCode.orElse(null)`. */
+            fun countryCode(countryCode: Optional<String>) = countryCode(countryCode.getOrNull())
 
             /**
-             * Sets [Builder.customerWebhookUrl] to an arbitrary JSON value.
+             * Sets [Builder.countryCode] to an arbitrary JSON value.
              *
-             * You should usually call [Builder.customerWebhookUrl] with a well-typed [String] value
+             * You should usually call [Builder.countryCode] with a well-typed [String] value
              * instead. This method is primarily for setting the field to an undocumented or not yet
              * supported value.
              */
-            fun customerWebhookUrl(customerWebhookUrl: JsonField<String>) = apply {
-                this.customerWebhookUrl = customerWebhookUrl
+            fun countryCode(countryCode: JsonField<String>) = apply {
+                this.countryCode = countryCode
             }
 
-            /** Integration-specific metadata. */
-            fun metadata(metadata: JsonValue) = apply { this.metadata = metadata }
+            fun createdAt(createdAt: Long) = createdAt(JsonField.of(createdAt))
 
-            /** Name of the integration (GHL only). */
+            /**
+             * Sets [Builder.createdAt] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.createdAt] with a well-typed [Long] value instead.
+             * This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun createdAt(createdAt: JsonField<Long>) = apply { this.createdAt = createdAt }
+
             fun name(name: String) = name(JsonField.of(name))
 
             /**
@@ -719,6 +981,20 @@ private constructor(
              * value.
              */
             fun name(name: JsonField<String>) = apply { this.name = name }
+
+            fun organizationId(organizationId: String) =
+                organizationId(JsonField.of(organizationId))
+
+            /**
+             * Sets [Builder.organizationId] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.organizationId] with a well-typed [String] value
+             * instead. This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun organizationId(organizationId: JsonField<String>) = apply {
+                this.organizationId = organizationId
+            }
 
             fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
                 this.additionalProperties.clear()
@@ -740,28 +1016,31 @@ private constructor(
             }
 
             /**
-             * Returns an immutable instance of [IntegrationDetails].
+             * Returns an immutable instance of [Organization].
              *
              * Further updates to this [Builder] will not mutate the returned instance.
              */
-            fun build(): IntegrationDetails =
-                IntegrationDetails(
-                    customerWebhookUrl,
-                    metadata,
+            fun build(): Organization =
+                Organization(
+                    countryCode,
+                    createdAt,
                     name,
+                    organizationId,
                     additionalProperties.toMutableMap(),
                 )
         }
 
         private var validated: Boolean = false
 
-        fun validate(): IntegrationDetails = apply {
+        fun validate(): Organization = apply {
             if (validated) {
                 return@apply
             }
 
-            customerWebhookUrl()
+            countryCode()
+            createdAt()
             name()
+            organizationId()
             validated = true
         }
 
@@ -781,32 +1060,35 @@ private constructor(
          */
         @JvmSynthetic
         internal fun validity(): Int =
-            (if (customerWebhookUrl.asKnown().isPresent) 1 else 0) +
-                (if (name.asKnown().isPresent) 1 else 0)
+            (if (countryCode.asKnown().isPresent) 1 else 0) +
+                (if (createdAt.asKnown().isPresent) 1 else 0) +
+                (if (name.asKnown().isPresent) 1 else 0) +
+                (if (organizationId.asKnown().isPresent) 1 else 0)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) {
                 return true
             }
 
-            return other is IntegrationDetails &&
-                customerWebhookUrl == other.customerWebhookUrl &&
-                metadata == other.metadata &&
+            return other is Organization &&
+                countryCode == other.countryCode &&
+                createdAt == other.createdAt &&
                 name == other.name &&
+                organizationId == other.organizationId &&
                 additionalProperties == other.additionalProperties
         }
 
         private val hashCode: Int by lazy {
-            Objects.hash(customerWebhookUrl, metadata, name, additionalProperties)
+            Objects.hash(countryCode, createdAt, name, organizationId, additionalProperties)
         }
 
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "IntegrationDetails{customerWebhookUrl=$customerWebhookUrl, metadata=$metadata, name=$name, additionalProperties=$additionalProperties}"
+            "Organization{countryCode=$countryCode, createdAt=$createdAt, name=$name, organizationId=$organizationId, additionalProperties=$additionalProperties}"
     }
 
-    /** Usage statistics for this API key. */
+    /** Usage statistics (only for api_key auth) */
     class Usage
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
@@ -830,24 +1112,18 @@ private constructor(
         ) : this(inboundMessages, lastMessageSent, outboundMessages, mutableMapOf())
 
         /**
-         * Total number of inbound messages.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun inboundMessages(): Optional<Long> = inboundMessages.getOptional("inbound_messages")
 
         /**
-         * Unix timestamp (ms) of the last message sent.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun lastMessageSent(): Optional<Long> = lastMessageSent.getOptional("last_message_sent")
 
         /**
-         * Total number of outbound messages.
-         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
@@ -917,7 +1193,6 @@ private constructor(
                 additionalProperties = usage.additionalProperties.toMutableMap()
             }
 
-            /** Total number of inbound messages. */
             fun inboundMessages(inboundMessages: Long) =
                 inboundMessages(JsonField.of(inboundMessages))
 
@@ -932,7 +1207,6 @@ private constructor(
                 this.inboundMessages = inboundMessages
             }
 
-            /** Unix timestamp (ms) of the last message sent. */
             fun lastMessageSent(lastMessageSent: Long?) =
                 lastMessageSent(JsonField.ofNullable(lastMessageSent))
 
@@ -958,7 +1232,6 @@ private constructor(
                 this.lastMessageSent = lastMessageSent
             }
 
-            /** Total number of outbound messages. */
             fun outboundMessages(outboundMessages: Long) =
                 outboundMessages(JsonField.of(outboundMessages))
 
@@ -1068,11 +1341,14 @@ private constructor(
 
         return other is MeRetrieveResponse &&
             apiKey == other.apiKey &&
+            authType == other.authType &&
             devices == other.devices &&
             integrationDetails == other.integrationDetails &&
             metadata == other.metadata &&
-            plan == other.plan &&
+            organization == other.organization &&
+            organizationId == other.organizationId &&
             usage == other.usage &&
+            userId == other.userId &&
             valid == other.valid &&
             additionalProperties == other.additionalProperties
     }
@@ -1080,11 +1356,14 @@ private constructor(
     private val hashCode: Int by lazy {
         Objects.hash(
             apiKey,
+            authType,
             devices,
             integrationDetails,
             metadata,
-            plan,
+            organization,
+            organizationId,
             usage,
+            userId,
             valid,
             additionalProperties,
         )
@@ -1093,5 +1372,5 @@ private constructor(
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "MeRetrieveResponse{apiKey=$apiKey, devices=$devices, integrationDetails=$integrationDetails, metadata=$metadata, plan=$plan, usage=$usage, valid=$valid, additionalProperties=$additionalProperties}"
+        "MeRetrieveResponse{apiKey=$apiKey, authType=$authType, devices=$devices, integrationDetails=$integrationDetails, metadata=$metadata, organization=$organization, organizationId=$organizationId, usage=$usage, userId=$userId, valid=$valid, additionalProperties=$additionalProperties}"
 }

@@ -9,9 +9,9 @@ configure<PublishingExtension> {
             from(components["java"])
 
             pom {
-                name.set("Blooio Messaging API (v3)")
-                description.set("Public HTTP API for sending and managing iMessage/SMS messages through Blooio.\nAll endpoints are prefixed with `/v1/api` and secured with a Bearer API key.")
-                url.set("https://www.github.com/Blooio/blooio-java-sdk")
+                name.set("Blooio API v2")
+                description.set("RESTful API for iMessage automation. Send messages, manage contacts, groups, and\nwebhooks.")
+                url.set("https://blooio.com")
 
                 licenses {
                     license {
@@ -22,13 +22,14 @@ configure<PublishingExtension> {
                 developers {
                     developer {
                         name.set("Blooio")
+                        email.set("support@blooio.com")
                     }
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/Blooio/blooio-java-sdk.git")
-                    developerConnection.set("scm:git:git://github.com/Blooio/blooio-java-sdk.git")
-                    url.set("https://github.com/Blooio/blooio-java-sdk")
+                    connection.set("scm:git:git://github.com/stainless-sdks/blooio-java.git")
+                    developerConnection.set("scm:git:git://github.com/stainless-sdks/blooio-java.git")
+                    url.set("https://github.com/stainless-sdks/blooio-java")
                 }
 
                 versionMapping {
