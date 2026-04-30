@@ -93,7 +93,7 @@ private constructor(
      * Defaults to 2.
      */
     @get:JvmName("maxRetries") val maxRetries: Int,
-    /** API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`. */
+    /** API key authentication. Use your API key as the bearer token. */
     @get:JvmName("apiKey") val apiKey: String,
 ) {
 
@@ -106,7 +106,7 @@ private constructor(
     /**
      * The base URL to use for every request.
      *
-     * Defaults to the production environment: `https://backend.blooio.com`.
+     * Defaults to the production environment: `https://backend.blooio.com/v2/api`.
      */
     fun baseUrl(): String = baseUrl ?: PRODUCTION_URL
 
@@ -114,7 +114,7 @@ private constructor(
 
     companion object {
 
-        const val PRODUCTION_URL = "https://backend.blooio.com"
+        const val PRODUCTION_URL = "https://backend.blooio.com/v2/api"
 
         /**
          * Returns a mutable builder for constructing an instance of [ClientOptions].
@@ -220,7 +220,7 @@ private constructor(
         /**
          * The base URL to use for every request.
          *
-         * Defaults to the production environment: `https://backend.blooio.com`.
+         * Defaults to the production environment: `https://backend.blooio.com/v2/api`.
          */
         fun baseUrl(baseUrl: String?) = apply { this.baseUrl = baseUrl }
 
@@ -271,7 +271,7 @@ private constructor(
          */
         fun maxRetries(maxRetries: Int) = apply { this.maxRetries = maxRetries }
 
-        /** API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`. */
+        /** API key authentication. Use your API key as the bearer token. */
         fun apiKey(apiKey: String) = apply { this.apiKey = apiKey }
 
         fun headers(headers: Headers) = apply {
@@ -361,10 +361,10 @@ private constructor(
          *
          * See this table for the available options:
          *
-         * |Setter   |System property |Environment variable|Required|Default value                 |
-         * |---------|----------------|--------------------|--------|------------------------------|
-         * |`apiKey` |`blooio.apiKey` |`BLOOIO_API_KEY`    |true    |-                             |
-         * |`baseUrl`|`blooio.baseUrl`|`BLOOIO_BASE_URL`   |true    |`"https://backend.blooio.com"`|
+         * |Setter   |System property |Environment variable|Required|Default value                        |
+         * |---------|----------------|--------------------|--------|-------------------------------------|
+         * |`apiKey` |`blooio.apiKey` |`BLOOIO_API_KEY`    |true    |-                                    |
+         * |`baseUrl`|`blooio.baseUrl`|`BLOOIO_BASE_URL`   |true    |`"https://backend.blooio.com/v2/api"`|
          *
          * System properties take precedence over environment variables.
          */
@@ -374,6 +374,14 @@ private constructor(
             }
             (System.getProperty("blooio.apiKey") ?: System.getenv("BLOOIO_API_KEY"))?.let {
                 apiKey(it)
+            }
+            System.getenv("BLOOIO_CUSTOM_HEADERS")?.let { customHeadersEnv ->
+                for (line in customHeadersEnv.split("\n")) {
+                    val colon = line.indexOf(':')
+                    if (colon >= 0) {
+                        putHeader(line.substring(0, colon).trim(), line.substring(colon + 1).trim())
+                    }
+                }
             }
         }
 
@@ -405,13 +413,14 @@ private constructor(
             headers.put("X-Stainless-Runtime", "JRE")
             headers.put("X-Stainless-Runtime-Version", getJavaVersion())
             headers.put("X-Stainless-Kotlin-Version", KotlinVersion.CURRENT.toString())
-            apiKey.let {
-                if (!it.isEmpty()) {
-                    headers.put("Authorization", "Bearer $it")
-                }
-            }
+            // We replace after all the default headers to allow end-users to overwrite them.
             headers.replaceAll(this.headers.build())
             queryParams.replaceAll(this.queryParams.build())
+            apiKey.let {
+                if (!it.isEmpty()) {
+                    headers.replace("Authorization", "Bearer $it")
+                }
+            }
 
             return ClientOptions(
                 httpClient,

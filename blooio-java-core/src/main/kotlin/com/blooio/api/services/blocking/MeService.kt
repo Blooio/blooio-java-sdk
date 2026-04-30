@@ -7,10 +7,11 @@ import com.blooio.api.core.RequestOptions
 import com.blooio.api.core.http.HttpResponseFor
 import com.blooio.api.models.me.MeRetrieveParams
 import com.blooio.api.models.me.MeRetrieveResponse
+import com.blooio.api.services.blocking.me.NumberService
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
-/** Account and API key information */
+/** Authentication and account information */
 interface MeService {
 
     /**
@@ -25,9 +26,12 @@ interface MeService {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeService
 
+    /** Manage phone numbers linked to your account */
+    fun numbers(): NumberService
+
     /**
-     * Returns information about the authenticated API key including plan, devices, usage
-     * statistics, and integration details.
+     * Returns details about the authenticated API key or dashboard user, including organization
+     * info, devices, and usage statistics.
      */
     fun retrieve(): MeRetrieveResponse = retrieve(MeRetrieveParams.none())
 
@@ -55,8 +59,11 @@ interface MeService {
          */
         fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeService.WithRawResponse
 
+        /** Manage phone numbers linked to your account */
+        fun numbers(): NumberService.WithRawResponse
+
         /**
-         * Returns a raw HTTP response for `get /v1/api/me`, but is otherwise the same as
+         * Returns a raw HTTP response for `get /me`, but is otherwise the same as
          * [MeService.retrieve].
          */
         @MustBeClosed

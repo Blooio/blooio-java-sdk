@@ -8,7 +8,8 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":blooio-java"))
+    implementation(project(":blooio-java-core"))
+    implementation(project(":blooio-java-client-okhttp"))
 }
 
 tasks.withType<JavaCompile>().configureEach {

@@ -8,8 +8,8 @@ import com.blooio.api.core.http.QueryParams
 import java.util.Objects
 
 /**
- * Returns information about the authenticated API key including plan, devices, usage statistics,
- * and integration details.
+ * Returns details about the authenticated API key or dashboard user, including organization info,
+ * devices, and usage statistics.
  */
 class MeRetrieveParams
 private constructor(

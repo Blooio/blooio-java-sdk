@@ -207,7 +207,7 @@ class BlooioOkHttpClient private constructor() {
         /**
          * The base URL to use for every request.
          *
-         * Defaults to the production environment: `https://backend.blooio.com`.
+         * Defaults to the production environment: `https://backend.blooio.com/v2/api`.
          */
         fun baseUrl(baseUrl: String?) = apply { clientOptions.baseUrl(baseUrl) }
 
@@ -258,7 +258,7 @@ class BlooioOkHttpClient private constructor() {
          */
         fun maxRetries(maxRetries: Int) = apply { clientOptions.maxRetries(maxRetries) }
 
-        /** API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`. */
+        /** API key authentication. Use your API key as the bearer token. */
         fun apiKey(apiKey: String) = apply { clientOptions.apiKey(apiKey) }
 
         fun headers(headers: Headers) = apply { clientOptions.headers(headers) }

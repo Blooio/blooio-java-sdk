@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.time.OffsetDateTime
 import java.util.Collections
 import java.util.Objects
 import java.util.Optional
@@ -23,7 +22,7 @@ class ContactCheckCapabilitiesResponse
 private constructor(
     private val capabilities: JsonField<Capabilities>,
     private val contact: JsonField<String>,
-    private val lastChecked: JsonField<OffsetDateTime>,
+    private val lastChecked: JsonField<Long>,
     private val type: JsonField<Type>,
     private val additionalProperties: MutableMap<String, JsonValue>,
 ) {
@@ -34,22 +33,20 @@ private constructor(
         @ExcludeMissing
         capabilities: JsonField<Capabilities> = JsonMissing.of(),
         @JsonProperty("contact") @ExcludeMissing contact: JsonField<String> = JsonMissing.of(),
-        @JsonProperty("lastChecked")
+        @JsonProperty("last_checked")
         @ExcludeMissing
-        lastChecked: JsonField<OffsetDateTime> = JsonMissing.of(),
+        lastChecked: JsonField<Long> = JsonMissing.of(),
         @JsonProperty("type") @ExcludeMissing type: JsonField<Type> = JsonMissing.of(),
     ) : this(capabilities, contact, lastChecked, type, mutableMapOf())
 
     /**
-     * Messaging capabilities for this contact.
-     *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
      */
     fun capabilities(): Optional<Capabilities> = capabilities.getOptional("capabilities")
 
     /**
-     * The contact identifier (phone number or email).
+     * Normalized contact identifier
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -57,16 +54,14 @@ private constructor(
     fun contact(): Optional<String> = contact.getOptional("contact")
 
     /**
-     * ISO 8601 timestamp of when capabilities were last checked.
+     * Timestamp when capabilities were checked
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
      */
-    fun lastChecked(): Optional<OffsetDateTime> = lastChecked.getOptional("lastChecked")
+    fun lastChecked(): Optional<Long> = lastChecked.getOptional("last_checked")
 
     /**
-     * Type of contact identifier.
-     *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
      */
@@ -93,9 +88,7 @@ private constructor(
      *
      * Unlike [lastChecked], this method doesn't throw if the JSON field has an unexpected type.
      */
-    @JsonProperty("lastChecked")
-    @ExcludeMissing
-    fun _lastChecked(): JsonField<OffsetDateTime> = lastChecked
+    @JsonProperty("last_checked") @ExcludeMissing fun _lastChecked(): JsonField<Long> = lastChecked
 
     /**
      * Returns the raw JSON value of [type].
@@ -130,7 +123,7 @@ private constructor(
 
         private var capabilities: JsonField<Capabilities> = JsonMissing.of()
         private var contact: JsonField<String> = JsonMissing.of()
-        private var lastChecked: JsonField<OffsetDateTime> = JsonMissing.of()
+        private var lastChecked: JsonField<Long> = JsonMissing.of()
         private var type: JsonField<Type> = JsonMissing.of()
         private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
@@ -145,7 +138,6 @@ private constructor(
                     contactCheckCapabilitiesResponse.additionalProperties.toMutableMap()
             }
 
-        /** Messaging capabilities for this contact. */
         fun capabilities(capabilities: Capabilities) = capabilities(JsonField.of(capabilities))
 
         /**
@@ -159,7 +151,7 @@ private constructor(
             this.capabilities = capabilities
         }
 
-        /** The contact identifier (phone number or email). */
+        /** Normalized contact identifier */
         fun contact(contact: String) = contact(JsonField.of(contact))
 
         /**
@@ -170,21 +162,18 @@ private constructor(
          */
         fun contact(contact: JsonField<String>) = apply { this.contact = contact }
 
-        /** ISO 8601 timestamp of when capabilities were last checked. */
-        fun lastChecked(lastChecked: OffsetDateTime) = lastChecked(JsonField.of(lastChecked))
+        /** Timestamp when capabilities were checked */
+        fun lastChecked(lastChecked: Long) = lastChecked(JsonField.of(lastChecked))
 
         /**
          * Sets [Builder.lastChecked] to an arbitrary JSON value.
          *
-         * You should usually call [Builder.lastChecked] with a well-typed [OffsetDateTime] value
-         * instead. This method is primarily for setting the field to an undocumented or not yet
-         * supported value.
+         * You should usually call [Builder.lastChecked] with a well-typed [Long] value instead.
+         * This method is primarily for setting the field to an undocumented or not yet supported
+         * value.
          */
-        fun lastChecked(lastChecked: JsonField<OffsetDateTime>) = apply {
-            this.lastChecked = lastChecked
-        }
+        fun lastChecked(lastChecked: JsonField<Long>) = apply { this.lastChecked = lastChecked }
 
-        /** Type of contact identifier. */
         fun type(type: Type) = type(JsonField.of(type))
 
         /**
@@ -263,10 +252,10 @@ private constructor(
             (if (lastChecked.asKnown().isPresent) 1 else 0) +
             (type.asKnown().getOrNull()?.validity() ?: 0)
 
-    /** Messaging capabilities for this contact. */
     class Capabilities
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
+        private val facetime: JsonField<Boolean>,
         private val imessage: JsonField<Boolean>,
         private val sms: JsonField<Boolean>,
         private val additionalProperties: MutableMap<String, JsonValue>,
@@ -274,14 +263,25 @@ private constructor(
 
         @JsonCreator
         private constructor(
+            @JsonProperty("facetime")
+            @ExcludeMissing
+            facetime: JsonField<Boolean> = JsonMissing.of(),
             @JsonProperty("imessage")
             @ExcludeMissing
             imessage: JsonField<Boolean> = JsonMissing.of(),
             @JsonProperty("sms") @ExcludeMissing sms: JsonField<Boolean> = JsonMissing.of(),
-        ) : this(imessage, sms, mutableMapOf())
+        ) : this(facetime, imessage, sms, mutableMapOf())
 
         /**
-         * Whether this contact supports iMessage.
+         * Whether FaceTime is available
+         *
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
+         */
+        fun facetime(): Optional<Boolean> = facetime.getOptional("facetime")
+
+        /**
+         * Whether iMessage is available
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
@@ -289,12 +289,19 @@ private constructor(
         fun imessage(): Optional<Boolean> = imessage.getOptional("imessage")
 
         /**
-         * Whether this contact supports SMS (always true for phone numbers, false for emails).
+         * Whether SMS is available (phone only)
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun sms(): Optional<Boolean> = sms.getOptional("sms")
+
+        /**
+         * Returns the raw JSON value of [facetime].
+         *
+         * Unlike [facetime], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("facetime") @ExcludeMissing fun _facetime(): JsonField<Boolean> = facetime
 
         /**
          * Returns the raw JSON value of [imessage].
@@ -331,18 +338,32 @@ private constructor(
         /** A builder for [Capabilities]. */
         class Builder internal constructor() {
 
+            private var facetime: JsonField<Boolean> = JsonMissing.of()
             private var imessage: JsonField<Boolean> = JsonMissing.of()
             private var sms: JsonField<Boolean> = JsonMissing.of()
             private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
             @JvmSynthetic
             internal fun from(capabilities: Capabilities) = apply {
+                facetime = capabilities.facetime
                 imessage = capabilities.imessage
                 sms = capabilities.sms
                 additionalProperties = capabilities.additionalProperties.toMutableMap()
             }
 
-            /** Whether this contact supports iMessage. */
+            /** Whether FaceTime is available */
+            fun facetime(facetime: Boolean) = facetime(JsonField.of(facetime))
+
+            /**
+             * Sets [Builder.facetime] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.facetime] with a well-typed [Boolean] value instead.
+             * This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun facetime(facetime: JsonField<Boolean>) = apply { this.facetime = facetime }
+
+            /** Whether iMessage is available */
             fun imessage(imessage: Boolean) = imessage(JsonField.of(imessage))
 
             /**
@@ -354,9 +375,7 @@ private constructor(
              */
             fun imessage(imessage: JsonField<Boolean>) = apply { this.imessage = imessage }
 
-            /**
-             * Whether this contact supports SMS (always true for phone numbers, false for emails).
-             */
+            /** Whether SMS is available (phone only) */
             fun sms(sms: Boolean) = sms(JsonField.of(sms))
 
             /**
@@ -393,7 +412,7 @@ private constructor(
              * Further updates to this [Builder] will not mutate the returned instance.
              */
             fun build(): Capabilities =
-                Capabilities(imessage, sms, additionalProperties.toMutableMap())
+                Capabilities(facetime, imessage, sms, additionalProperties.toMutableMap())
         }
 
         private var validated: Boolean = false
@@ -403,6 +422,7 @@ private constructor(
                 return@apply
             }
 
+            facetime()
             imessage()
             sms()
             validated = true
@@ -424,7 +444,9 @@ private constructor(
          */
         @JvmSynthetic
         internal fun validity(): Int =
-            (if (imessage.asKnown().isPresent) 1 else 0) + (if (sms.asKnown().isPresent) 1 else 0)
+            (if (facetime.asKnown().isPresent) 1 else 0) +
+                (if (imessage.asKnown().isPresent) 1 else 0) +
+                (if (sms.asKnown().isPresent) 1 else 0)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) {
@@ -432,20 +454,22 @@ private constructor(
             }
 
             return other is Capabilities &&
+                facetime == other.facetime &&
                 imessage == other.imessage &&
                 sms == other.sms &&
                 additionalProperties == other.additionalProperties
         }
 
-        private val hashCode: Int by lazy { Objects.hash(imessage, sms, additionalProperties) }
+        private val hashCode: Int by lazy {
+            Objects.hash(facetime, imessage, sms, additionalProperties)
+        }
 
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Capabilities{imessage=$imessage, sms=$sms, additionalProperties=$additionalProperties}"
+            "Capabilities{facetime=$facetime, imessage=$imessage, sms=$sms, additionalProperties=$additionalProperties}"
     }
 
-    /** Type of contact identifier. */
     class Type @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
 
         /**

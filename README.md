@@ -1,25 +1,15 @@
 # Blooio Java API Library
 
-<!-- x-release-please-start-version -->
-
 [![Maven Central](https://img.shields.io/maven-central/v/com.blooio.api/blooio-java)](https://central.sonatype.com/artifact/com.blooio.api/blooio-java/0.0.4)
 [![javadoc](https://javadoc.io/badge2/com.blooio.api/blooio-java/0.0.4/javadoc.svg)](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4)
 
-<!-- x-release-please-end -->
-
-The Blooio Java SDK provides convenient access to the Blooio REST API from applications written in Java.
+The Blooio Java SDK provides convenient access to the [Blooio REST API](https://blooio.com) from applications written in Java.
 
 It is generated with [Stainless](https://www.stainless.com/).
 
-<!-- x-release-please-start-version -->
-
-Javadocs are available on [javadoc.io](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4).
-
-<!-- x-release-please-end -->
+The REST API documentation can be found on [blooio.com](https://blooio.com). Javadocs are available on [javadoc.io](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4).
 
 ## Installation
-
-<!-- x-release-please-start-version -->
 
 ### Gradle
 
@@ -36,8 +26,6 @@ implementation("com.blooio.api:blooio-java:0.0.4")
   <version>0.0.4</version>
 </dependency>
 ```
-
-<!-- x-release-please-end -->
 
 ## Requirements
 
@@ -98,10 +86,10 @@ BlooioClient client = BlooioOkHttpClient.builder()
 
 See this table for the available options:
 
-| Setter    | System property  | Environment variable | Required | Default value                  |
-| --------- | ---------------- | -------------------- | -------- | ------------------------------ |
-| `apiKey`  | `blooio.apiKey`  | `BLOOIO_API_KEY`     | true     | -                              |
-| `baseUrl` | `blooio.baseUrl` | `BLOOIO_BASE_URL`    | true     | `"https://backend.blooio.com"` |
+| Setter    | System property  | Environment variable | Required | Default value                         |
+| --------- | ---------------- | -------------------- | -------- | ------------------------------------- |
+| `apiKey`  | `blooio.apiKey`  | `BLOOIO_API_KEY`     | true     | -                                     |
+| `baseUrl` | `blooio.baseUrl` | `BLOOIO_BASE_URL`    | true     | `"https://backend.blooio.com/v2/api"` |
 
 System properties take precedence over environment variables.
 
@@ -173,6 +161,70 @@ CompletableFuture<MeRetrieveResponse> me = client.me().retrieve();
 ```
 
 The asynchronous client supports the same options as the synchronous one, except most methods return `CompletableFuture`s.
+
+## File uploads
+
+The SDK defines methods that accept files.
+
+To upload a file, pass a [`Path`](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html):
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.nio.file.Paths;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(Paths.get("/path/to/file"))
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Or an arbitrary [`InputStream`](https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html):
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.net.URL;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(new URL("https://example.com//path/to/file").openStream())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Or a `byte[]` array:
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon("content".getBytes())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Note that when passing a non-`Path` its filename is unknown so it will not be included in the request. To manually set a filename, pass a [`MultipartField`](blooio-java-core/src/main/kotlin/com/blooio/api/core/Values.kt):
+
+```java
+import com.blooio.api.core.MultipartField;
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.io.InputStream;
+import java.net.URL;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(MultipartField.<InputStream>builder()
+        .value(new URL("https://example.com//path/to/file").openStream())
+        .filename("/path/to/file")
+        .build())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
 
 ## Raw responses
 
@@ -430,6 +482,21 @@ MeRetrieveParams params = MeRetrieveParams.builder()
 
 These can be accessed on the built object later using the `_additionalHeaders()`, `_additionalQueryParams()`, and `_additionalBodyProperties()` methods.
 
+To set undocumented parameters on _nested_ headers, query params, or body classes, call the `putAdditionalProperty` method on the nested class:
+
+```java
+import com.blooio.api.core.JsonValue;
+import com.blooio.api.models.me.numbers.contactcard.ContactCardUpdateParams;
+
+ContactCardUpdateParams params = ContactCardUpdateParams.builder()
+    .sharing(ContactCardUpdateParams.Sharing.builder()
+        .putAdditionalProperty("secretProperty", JsonValue.from("42"))
+        .build())
+    .build();
+```
+
+These properties can be accessed on the nested built object later using the `_additionalProperties()` method.
+
 To set a documented parameter or property to an undocumented or not yet supported _value_, pass a [`JsonValue`](blooio-java-core/src/main/kotlin/com/blooio/api/core/Values.kt) object to its setter:
 
 ```java
@@ -483,11 +550,11 @@ To forcibly omit a required parameter or property, pass [`JsonMissing`](blooio-j
 
 ```java
 import com.blooio.api.core.JsonMissing;
-import com.blooio.api.models.contacts.ContactCheckCapabilitiesParams;
 import com.blooio.api.models.me.MeRetrieveParams;
+import com.blooio.api.models.me.numbers.contactcard.ContactCardRetrieveParams;
 
-MeRetrieveParams params = ContactCheckCapabilitiesParams.builder()
-    .contact(JsonMissing.of())
+MeRetrieveParams params = ContactCardRetrieveParams.builder()
+    .number(JsonMissing.of())
     .build();
 ```
 
@@ -617,4 +684,4 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
-We are keen for your feedback; please open an [issue](https://www.github.com/Blooio/blooio-java-sdk/issues) with questions, bugs, or suggestions.
+We are keen for your feedback; please open an [issue](https://www.github.com/stainless-sdks/blooio-java/issues) with questions, bugs, or suggestions.
