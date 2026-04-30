@@ -257,9 +257,12 @@ private constructor(
         /** Alias for calling [addAttachment] with `Attachment.ofString(string)`. */
         fun addAttachment(string: String) = apply { body.addAttachment(string) }
 
-        /** Alias for calling [addAttachment] with `Attachment.ofUnionMember1(unionMember1)`. */
-        fun addAttachment(unionMember1: Attachment.UnionMember1) = apply {
-            body.addAttachment(unionMember1)
+        /**
+         * Alias for calling [addAttachment] with
+         * `Attachment.ofUnionObjectVariant1(unionObjectVariant1)`.
+         */
+        fun addAttachment(unionObjectVariant1: Attachment.UnionObjectVariant1) = apply {
+            body.addAttachment(unionObjectVariant1)
         }
 
         /**
@@ -778,9 +781,12 @@ private constructor(
             /** Alias for calling [addAttachment] with `Attachment.ofString(string)`. */
             fun addAttachment(string: String) = addAttachment(Attachment.ofString(string))
 
-            /** Alias for calling [addAttachment] with `Attachment.ofUnionMember1(unionMember1)`. */
-            fun addAttachment(unionMember1: Attachment.UnionMember1) =
-                addAttachment(Attachment.ofUnionMember1(unionMember1))
+            /**
+             * Alias for calling [addAttachment] with
+             * `Attachment.ofUnionObjectVariant1(unionObjectVariant1)`.
+             */
+            fun addAttachment(unionObjectVariant1: Attachment.UnionObjectVariant1) =
+                addAttachment(Attachment.ofUnionObjectVariant1(unionObjectVariant1))
 
             /**
              * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted,
@@ -1031,30 +1037,32 @@ private constructor(
     class Attachment
     private constructor(
         private val string: String? = null,
-        private val unionMember1: UnionMember1? = null,
+        private val unionObjectVariant1: UnionObjectVariant1? = null,
         private val _json: JsonValue? = null,
     ) {
 
         /** URL to the attachment */
         fun string(): Optional<String> = Optional.ofNullable(string)
 
-        fun unionMember1(): Optional<UnionMember1> = Optional.ofNullable(unionMember1)
+        fun unionObjectVariant1(): Optional<UnionObjectVariant1> =
+            Optional.ofNullable(unionObjectVariant1)
 
         fun isString(): Boolean = string != null
 
-        fun isUnionMember1(): Boolean = unionMember1 != null
+        fun isUnionObjectVariant1(): Boolean = unionObjectVariant1 != null
 
         /** URL to the attachment */
         fun asString(): String = string.getOrThrow("string")
 
-        fun asUnionMember1(): UnionMember1 = unionMember1.getOrThrow("unionMember1")
+        fun asUnionObjectVariant1(): UnionObjectVariant1 =
+            unionObjectVariant1.getOrThrow("unionObjectVariant1")
 
         fun _json(): Optional<JsonValue> = Optional.ofNullable(_json)
 
         fun <T> accept(visitor: Visitor<T>): T =
             when {
                 string != null -> visitor.visitString(string)
-                unionMember1 != null -> visitor.visitUnionMember1(unionMember1)
+                unionObjectVariant1 != null -> visitor.visitUnionObjectVariant1(unionObjectVariant1)
                 else -> visitor.unknown(_json)
             }
 
@@ -1069,8 +1077,10 @@ private constructor(
                 object : Visitor<Unit> {
                     override fun visitString(string: String) {}
 
-                    override fun visitUnionMember1(unionMember1: UnionMember1) {
-                        unionMember1.validate()
+                    override fun visitUnionObjectVariant1(
+                        unionObjectVariant1: UnionObjectVariant1
+                    ) {
+                        unionObjectVariant1.validate()
                     }
                 }
             )
@@ -1097,8 +1107,9 @@ private constructor(
                 object : Visitor<Int> {
                     override fun visitString(string: String) = 1
 
-                    override fun visitUnionMember1(unionMember1: UnionMember1) =
-                        unionMember1.validity()
+                    override fun visitUnionObjectVariant1(
+                        unionObjectVariant1: UnionObjectVariant1
+                    ) = unionObjectVariant1.validity()
 
                     override fun unknown(json: JsonValue?) = 0
                 }
@@ -1111,15 +1122,16 @@ private constructor(
 
             return other is Attachment &&
                 string == other.string &&
-                unionMember1 == other.unionMember1
+                unionObjectVariant1 == other.unionObjectVariant1
         }
 
-        override fun hashCode(): Int = Objects.hash(string, unionMember1)
+        override fun hashCode(): Int = Objects.hash(string, unionObjectVariant1)
 
         override fun toString(): String =
             when {
                 string != null -> "Attachment{string=$string}"
-                unionMember1 != null -> "Attachment{unionMember1=$unionMember1}"
+                unionObjectVariant1 != null ->
+                    "Attachment{unionObjectVariant1=$unionObjectVariant1}"
                 _json != null -> "Attachment{_unknown=$_json}"
                 else -> throw IllegalStateException("Invalid Attachment")
             }
@@ -1130,7 +1142,8 @@ private constructor(
             @JvmStatic fun ofString(string: String) = Attachment(string = string)
 
             @JvmStatic
-            fun ofUnionMember1(unionMember1: UnionMember1) = Attachment(unionMember1 = unionMember1)
+            fun ofUnionObjectVariant1(unionObjectVariant1: UnionObjectVariant1) =
+                Attachment(unionObjectVariant1 = unionObjectVariant1)
         }
 
         /**
@@ -1141,7 +1154,7 @@ private constructor(
             /** URL to the attachment */
             fun visitString(string: String): T
 
-            fun visitUnionMember1(unionMember1: UnionMember1): T
+            fun visitUnionObjectVariant1(unionObjectVariant1: UnionObjectVariant1): T
 
             /**
              * Maps an unknown variant of [Attachment] to a value of type [T].
@@ -1165,8 +1178,8 @@ private constructor(
 
                 val bestMatches =
                     sequenceOf(
-                            tryDeserialize(node, jacksonTypeRef<UnionMember1>())?.let {
-                                Attachment(unionMember1 = it, _json = json)
+                            tryDeserialize(node, jacksonTypeRef<UnionObjectVariant1>())?.let {
+                                Attachment(unionObjectVariant1 = it, _json = json)
                             },
                             tryDeserialize(node, jacksonTypeRef<String>())?.let {
                                 Attachment(string = it, _json = json)
@@ -1197,14 +1210,15 @@ private constructor(
             ) {
                 when {
                     value.string != null -> generator.writeObject(value.string)
-                    value.unionMember1 != null -> generator.writeObject(value.unionMember1)
+                    value.unionObjectVariant1 != null ->
+                        generator.writeObject(value.unionObjectVariant1)
                     value._json != null -> generator.writeObject(value._json)
                     else -> throw IllegalStateException("Invalid Attachment")
                 }
             }
         }
 
-        class UnionMember1
+        class UnionObjectVariant1
         @JsonCreator(mode = JsonCreator.Mode.DISABLED)
         private constructor(
             private val url: JsonField<String>,
@@ -1260,7 +1274,7 @@ private constructor(
             companion object {
 
                 /**
-                 * Returns a mutable builder for constructing an instance of [UnionMember1].
+                 * Returns a mutable builder for constructing an instance of [UnionObjectVariant1].
                  *
                  * The following fields are required:
                  * ```java
@@ -1270,7 +1284,7 @@ private constructor(
                 @JvmStatic fun builder() = Builder()
             }
 
-            /** A builder for [UnionMember1]. */
+            /** A builder for [UnionObjectVariant1]. */
             class Builder internal constructor() {
 
                 private var url: JsonField<String>? = null
@@ -1278,10 +1292,10 @@ private constructor(
                 private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
                 @JvmSynthetic
-                internal fun from(unionMember1: UnionMember1) = apply {
-                    url = unionMember1.url
-                    name = unionMember1.name
-                    additionalProperties = unionMember1.additionalProperties.toMutableMap()
+                internal fun from(unionObjectVariant1: UnionObjectVariant1) = apply {
+                    url = unionObjectVariant1.url
+                    name = unionObjectVariant1.name
+                    additionalProperties = unionObjectVariant1.additionalProperties.toMutableMap()
                 }
 
                 fun url(url: String) = url(JsonField.of(url))
@@ -1329,7 +1343,7 @@ private constructor(
                 }
 
                 /**
-                 * Returns an immutable instance of [UnionMember1].
+                 * Returns an immutable instance of [UnionObjectVariant1].
                  *
                  * Further updates to this [Builder] will not mutate the returned instance.
                  *
@@ -1340,8 +1354,8 @@ private constructor(
                  *
                  * @throws IllegalStateException if any required field is unset.
                  */
-                fun build(): UnionMember1 =
-                    UnionMember1(
+                fun build(): UnionObjectVariant1 =
+                    UnionObjectVariant1(
                         checkRequired("url", url),
                         name,
                         additionalProperties.toMutableMap(),
@@ -1350,7 +1364,7 @@ private constructor(
 
             private var validated: Boolean = false
 
-            fun validate(): UnionMember1 = apply {
+            fun validate(): UnionObjectVariant1 = apply {
                 if (validated) {
                     return@apply
                 }
@@ -1383,7 +1397,7 @@ private constructor(
                     return true
                 }
 
-                return other is UnionMember1 &&
+                return other is UnionObjectVariant1 &&
                     url == other.url &&
                     name == other.name &&
                     additionalProperties == other.additionalProperties
@@ -1394,7 +1408,7 @@ private constructor(
             override fun hashCode(): Int = hashCode
 
             override fun toString() =
-                "UnionMember1{url=$url, name=$name, additionalProperties=$additionalProperties}"
+                "UnionObjectVariant1{url=$url, name=$name, additionalProperties=$additionalProperties}"
         }
     }
 
