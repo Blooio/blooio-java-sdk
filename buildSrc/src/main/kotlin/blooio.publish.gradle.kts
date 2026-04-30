@@ -27,9 +27,9 @@ configure<PublishingExtension> {
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/stainless-sdks/blooio-java.git")
-                    developerConnection.set("scm:git:git://github.com/stainless-sdks/blooio-java.git")
-                    url.set("https://github.com/stainless-sdks/blooio-java")
+                    connection.set("scm:git:git://github.com/Blooio/blooio-java-sdk.git")
+                    developerConnection.set("scm:git:git://github.com/Blooio/blooio-java-sdk.git")
+                    url.set("https://github.com/Blooio/blooio-java-sdk")
                 }
 
                 versionMapping {

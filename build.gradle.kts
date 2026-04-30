@@ -9,7 +9,7 @@ repositories {
 
 allprojects {
     group = "com.blooio.api"
-    version = "0.0.4"
+    version = "0.0.4" // x-release-please-version
 }
 
 subprojects {
