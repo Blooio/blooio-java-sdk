@@ -159,6 +159,14 @@ private constructor(
 
     private var validated: Boolean = false
 
+    /**
+     * Validates that the types of all values in this object match their expected types recursively.
+     *
+     * This method is _not_ forwards compatible with new types from the API for existing fields.
+     *
+     * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+     *   expected type.
+     */
     fun validate(): LogListResponse = apply {
         if (validated) {
             return@apply
@@ -593,6 +601,15 @@ private constructor(
 
         private var validated: Boolean = false
 
+        /**
+         * Validates that the types of all values in this object match their expected types
+         * recursively.
+         *
+         * This method is _not_ forwards compatible with new types from the API for existing fields.
+         *
+         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+         *   expected type.
+         */
         fun validate(): Log = apply {
             if (validated) {
                 return@apply
@@ -1508,6 +1525,16 @@ private constructor(
 
             private var validated: Boolean = false
 
+            /**
+             * Validates that the types of all values in this object match their expected types
+             * recursively.
+             *
+             * This method is _not_ forwards compatible with new types from the API for existing
+             * fields.
+             *
+             * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+             *   expected type.
+             */
             fun validate(): EventBody = apply {
                 if (validated) {
                     return@apply
@@ -1704,6 +1731,16 @@ private constructor(
 
                 private var validated: Boolean = false
 
+                /**
+                 * Validates that the types of all values in this object match their expected types
+                 * recursively.
+                 *
+                 * This method is _not_ forwards compatible with new types from the API for existing
+                 * fields.
+                 *
+                 * @throws BlooioInvalidDataException if any value type in this object doesn't match
+                 *   its expected type.
+                 */
                 fun validate(): Attachment = apply {
                     if (validated) {
                         return@apply
@@ -1930,6 +1967,16 @@ private constructor(
 
                 private var validated: Boolean = false
 
+                /**
+                 * Validates that the types of all values in this object match their expected types
+                 * recursively.
+                 *
+                 * This method is _not_ forwards compatible with new types from the API for existing
+                 * fields.
+                 *
+                 * @throws BlooioInvalidDataException if any value type in this object doesn't match
+                 *   its expected type.
+                 */
                 fun validate(): Participant = apply {
                     if (validated) {
                         return@apply
@@ -2089,6 +2136,16 @@ private constructor(
 
                 private var validated: Boolean = false
 
+                /**
+                 * Validates that the types of all values in this object match their expected types
+                 * recursively.
+                 *
+                 * This method is _not_ forwards compatible with new types from the API for existing
+                 * fields.
+                 *
+                 * @throws BlooioInvalidDataException if any value type in this object doesn't match
+                 *   its expected type.
+                 */
                 fun validate(): Protocol = apply {
                     if (validated) {
                         return@apply
@@ -2251,6 +2308,16 @@ private constructor(
 
                 private var validated: Boolean = false
 
+                /**
+                 * Validates that the types of all values in this object match their expected types
+                 * recursively.
+                 *
+                 * This method is _not_ forwards compatible with new types from the API for existing
+                 * fields.
+                 *
+                 * @throws BlooioInvalidDataException if any value type in this object doesn't match
+                 *   its expected type.
+                 */
                 fun validate(): Status = apply {
                     if (validated) {
                         return@apply
@@ -2641,6 +2708,16 @@ private constructor(
 
             private var validated: Boolean = false
 
+            /**
+             * Validates that the types of all values in this object match their expected types
+             * recursively.
+             *
+             * This method is _not_ forwards compatible with new types from the API for existing
+             * fields.
+             *
+             * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+             *   expected type.
+             */
             fun validate(): Metadata = apply {
                 if (validated) {
                     return@apply
@@ -2808,6 +2885,16 @@ private constructor(
 
             private var validated: Boolean = false
 
+            /**
+             * Validates that the types of all values in this object match their expected types
+             * recursively.
+             *
+             * This method is _not_ forwards compatible with new types from the API for existing
+             * fields.
+             *
+             * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+             *   expected type.
+             */
             fun validate(): Scope = apply {
                 if (validated) {
                     return@apply
@@ -3111,6 +3198,15 @@ private constructor(
 
         private var validated: Boolean = false
 
+        /**
+         * Validates that the types of all values in this object match their expected types
+         * recursively.
+         *
+         * This method is _not_ forwards compatible with new types from the API for existing fields.
+         *
+         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+         *   expected type.
+         */
         fun validate(): Pagination = apply {
             if (validated) {
                 return@apply
