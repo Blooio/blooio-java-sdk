@@ -5,6 +5,7 @@ package com.blooio.api.errors
 import com.blooio.api.core.JsonValue
 import com.blooio.api.core.checkRequired
 import com.blooio.api.core.http.Headers
+import com.blooio.api.core.jsonMapper
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -14,7 +15,11 @@ private constructor(
     private val headers: Headers,
     private val body: JsonValue,
     cause: Throwable?,
-) : BlooioServiceException("$statusCode: $body", cause) {
+) :
+    BlooioServiceException(
+        "$statusCode: ${if (body.isMissing()) "Unknown" else jsonMapper().writeValueAsString(body)}",
+        cause,
+    ) {
 
     override fun statusCode(): Int = statusCode
 
