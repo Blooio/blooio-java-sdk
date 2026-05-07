@@ -5,6 +5,7 @@ package com.blooio.api.client.okhttp
 import com.blooio.api.client.BlooioClientAsync
 import com.blooio.api.client.BlooioClientAsyncImpl
 import com.blooio.api.core.ClientOptions
+import com.blooio.api.core.LogLevel
 import com.blooio.api.core.Sleeper
 import com.blooio.api.core.Timeout
 import com.blooio.api.core.http.Headers
@@ -276,6 +277,15 @@ class BlooioOkHttpClientAsync private constructor() {
          * Defaults to 2.
          */
         fun maxRetries(maxRetries: Int) = apply { clientOptions.maxRetries(maxRetries) }
+
+        /**
+         * The level at which to log request and response information.
+         *
+         * [fromEnv] will set the level from environment variables. See [LogLevel.fromEnv].
+         *
+         * Defaults to [LogLevel.fromEnv].
+         */
+        fun logLevel(logLevel: LogLevel) = apply { clientOptions.logLevel(logLevel) }
 
         /** API key authentication. Use your API key as the bearer token. */
         fun apiKey(apiKey: String) = apply { clientOptions.apiKey(apiKey) }
