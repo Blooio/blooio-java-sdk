@@ -28,6 +28,10 @@ interface TypingService {
 
     /**
      * Start the typing indicator for a chat. The indicator shows the recipient that you are typing.
+     *
+     * **RCS limitation:** typing indicators are only delivered for iMessage chats — the RCS
+     * protocol does not carry composing state. Calls against RCS-routed chats return 200 with a
+     * `warning` field and have no visible effect on the recipient.
      */
     fun start(chatId: String): TypingResponse = start(chatId, TypingStartParams.none())
 
@@ -57,7 +61,13 @@ interface TypingService {
     fun start(chatId: String, requestOptions: RequestOptions): TypingResponse =
         start(chatId, TypingStartParams.none(), requestOptions)
 
-    /** Stop the typing indicator for a chat. */
+    /**
+     * Stop the typing indicator for a chat.
+     *
+     * **RCS limitation:** typing indicators are only delivered for iMessage chats — the RCS
+     * protocol does not carry composing state. Calls against RCS-routed chats return 200 with a
+     * `warning` field and have no visible effect on the recipient.
+     */
     fun stop(chatId: String): TypingResponse = stop(chatId, TypingStopParams.none())
 
     /** @see stop */

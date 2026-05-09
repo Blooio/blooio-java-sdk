@@ -11,7 +11,13 @@ import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-/** Start the typing indicator for a chat. The indicator shows the recipient that you are typing. */
+/**
+ * Start the typing indicator for a chat. The indicator shows the recipient that you are typing.
+ *
+ * **RCS limitation:** typing indicators are only delivered for iMessage chats — the RCS protocol
+ * does not carry composing state. Calls against RCS-routed chats return 200 with a `warning` field
+ * and have no visible effect on the recipient.
+ */
 class TypingStartParams
 private constructor(
     private val chatId: String?,
