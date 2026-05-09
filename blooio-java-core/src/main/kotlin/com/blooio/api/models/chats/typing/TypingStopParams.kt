@@ -11,7 +11,13 @@ import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-/** Stop the typing indicator for a chat. */
+/**
+ * Stop the typing indicator for a chat.
+ *
+ * **RCS limitation:** typing indicators are only delivered for iMessage chats — the RCS protocol
+ * does not carry composing state. Calls against RCS-routed chats return 200 with a `warning` field
+ * and have no visible effect on the recipient.
+ */
 class TypingStopParams
 private constructor(
     private val chatId: String?,

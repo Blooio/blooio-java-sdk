@@ -22,6 +22,7 @@ private constructor(
     private val startedAt: JsonField<Long>,
     private val stoppedAt: JsonField<Long>,
     private val typing: JsonField<Boolean>,
+    private val warning: JsonField<String>,
     private val additionalProperties: MutableMap<String, JsonValue>,
 ) {
 
@@ -31,7 +32,8 @@ private constructor(
         @JsonProperty("started_at") @ExcludeMissing startedAt: JsonField<Long> = JsonMissing.of(),
         @JsonProperty("stopped_at") @ExcludeMissing stoppedAt: JsonField<Long> = JsonMissing.of(),
         @JsonProperty("typing") @ExcludeMissing typing: JsonField<Boolean> = JsonMissing.of(),
-    ) : this(chatId, startedAt, stoppedAt, typing, mutableMapOf())
+        @JsonProperty("warning") @ExcludeMissing warning: JsonField<String> = JsonMissing.of(),
+    ) : this(chatId, startedAt, stoppedAt, typing, warning, mutableMapOf())
 
     /**
      * Chat identifier
@@ -66,6 +68,15 @@ private constructor(
     fun typing(): Optional<Boolean> = typing.getOptional("typing")
 
     /**
+     * Present when the request was accepted but the indicator could not be delivered. The most
+     * common reason is that the chat last routed via RCS, which does not carry composing state.
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun warning(): Optional<String> = warning.getOptional("warning")
+
+    /**
      * Returns the raw JSON value of [chatId].
      *
      * Unlike [chatId], this method doesn't throw if the JSON field has an unexpected type.
@@ -93,6 +104,13 @@ private constructor(
      */
     @JsonProperty("typing") @ExcludeMissing fun _typing(): JsonField<Boolean> = typing
 
+    /**
+     * Returns the raw JSON value of [warning].
+     *
+     * Unlike [warning], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    @JsonProperty("warning") @ExcludeMissing fun _warning(): JsonField<String> = warning
+
     @JsonAnySetter
     private fun putAdditionalProperty(key: String, value: JsonValue) {
         additionalProperties.put(key, value)
@@ -118,6 +136,7 @@ private constructor(
         private var startedAt: JsonField<Long> = JsonMissing.of()
         private var stoppedAt: JsonField<Long> = JsonMissing.of()
         private var typing: JsonField<Boolean> = JsonMissing.of()
+        private var warning: JsonField<String> = JsonMissing.of()
         private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
         @JvmSynthetic
@@ -126,6 +145,7 @@ private constructor(
             startedAt = typingResponse.startedAt
             stoppedAt = typingResponse.stoppedAt
             typing = typingResponse.typing
+            warning = typingResponse.warning
             additionalProperties = typingResponse.additionalProperties.toMutableMap()
         }
 
@@ -173,6 +193,20 @@ private constructor(
          */
         fun typing(typing: JsonField<Boolean>) = apply { this.typing = typing }
 
+        /**
+         * Present when the request was accepted but the indicator could not be delivered. The most
+         * common reason is that the chat last routed via RCS, which does not carry composing state.
+         */
+        fun warning(warning: String) = warning(JsonField.of(warning))
+
+        /**
+         * Sets [Builder.warning] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.warning] with a well-typed [String] value instead. This
+         * method is primarily for setting the field to an undocumented or not yet supported value.
+         */
+        fun warning(warning: JsonField<String>) = apply { this.warning = warning }
+
         fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
             this.additionalProperties.clear()
             putAllAdditionalProperties(additionalProperties)
@@ -203,6 +237,7 @@ private constructor(
                 startedAt,
                 stoppedAt,
                 typing,
+                warning,
                 additionalProperties.toMutableMap(),
             )
     }
@@ -226,6 +261,7 @@ private constructor(
         startedAt()
         stoppedAt()
         typing()
+        warning()
         validated = true
     }
 
@@ -247,7 +283,8 @@ private constructor(
         (if (chatId.asKnown().isPresent) 1 else 0) +
             (if (startedAt.asKnown().isPresent) 1 else 0) +
             (if (stoppedAt.asKnown().isPresent) 1 else 0) +
-            (if (typing.asKnown().isPresent) 1 else 0)
+            (if (typing.asKnown().isPresent) 1 else 0) +
+            (if (warning.asKnown().isPresent) 1 else 0)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
@@ -259,15 +296,16 @@ private constructor(
             startedAt == other.startedAt &&
             stoppedAt == other.stoppedAt &&
             typing == other.typing &&
+            warning == other.warning &&
             additionalProperties == other.additionalProperties
     }
 
     private val hashCode: Int by lazy {
-        Objects.hash(chatId, startedAt, stoppedAt, typing, additionalProperties)
+        Objects.hash(chatId, startedAt, stoppedAt, typing, warning, additionalProperties)
     }
 
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "TypingResponse{chatId=$chatId, startedAt=$startedAt, stoppedAt=$stoppedAt, typing=$typing, additionalProperties=$additionalProperties}"
+        "TypingResponse{chatId=$chatId, startedAt=$startedAt, stoppedAt=$stoppedAt, typing=$typing, warning=$warning, additionalProperties=$additionalProperties}"
 }

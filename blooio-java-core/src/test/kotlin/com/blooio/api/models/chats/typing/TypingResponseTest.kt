@@ -17,12 +17,15 @@ internal class TypingResponseTest {
                 .startedAt(0L)
                 .stoppedAt(0L)
                 .typing(true)
+                .warning("RCS chats do not support composing indicators")
                 .build()
 
         assertThat(typingResponse.chatId()).contains("chat_id")
         assertThat(typingResponse.startedAt()).contains(0L)
         assertThat(typingResponse.stoppedAt()).contains(0L)
         assertThat(typingResponse.typing()).contains(true)
+        assertThat(typingResponse.warning())
+            .contains("RCS chats do not support composing indicators")
     }
 
     @Test
@@ -34,6 +37,7 @@ internal class TypingResponseTest {
                 .startedAt(0L)
                 .stoppedAt(0L)
                 .typing(true)
+                .warning("RCS chats do not support composing indicators")
                 .build()
 
         val roundtrippedTypingResponse =
