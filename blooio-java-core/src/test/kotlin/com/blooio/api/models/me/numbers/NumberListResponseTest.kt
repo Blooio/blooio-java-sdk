@@ -20,6 +20,7 @@ internal class NumberListResponseTest {
                         .isActive(true)
                         .lastActive(OffsetDateTime.parse("2019-12-27T18:11:19.117Z"))
                         .phoneNumber("+15551234567")
+                        .planKind(NumberListResponse.Number.PlanKind.SHARED)
                         .build()
                 )
                 .build()
@@ -30,6 +31,7 @@ internal class NumberListResponseTest {
                     .isActive(true)
                     .lastActive(OffsetDateTime.parse("2019-12-27T18:11:19.117Z"))
                     .phoneNumber("+15551234567")
+                    .planKind(NumberListResponse.Number.PlanKind.SHARED)
                     .build()
             )
     }
@@ -44,6 +46,7 @@ internal class NumberListResponseTest {
                         .isActive(true)
                         .lastActive(OffsetDateTime.parse("2019-12-27T18:11:19.117Z"))
                         .phoneNumber("+15551234567")
+                        .planKind(NumberListResponse.Number.PlanKind.SHARED)
                         .build()
                 )
                 .build()

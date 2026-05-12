@@ -70,6 +70,7 @@ internal class ProGuardCompatibilityTest {
                         .isActive(true)
                         .lastActive(0L)
                         .phoneNumber("phone_number")
+                        .planKind(MeRetrieveResponse.Device.PlanKind.SHARED)
                         .build()
                 )
                 .integrationDetails(JsonValue.from(mapOf<String, Any>()))

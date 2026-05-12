@@ -619,6 +619,7 @@ private constructor(
         private val isActive: JsonField<Boolean>,
         private val lastActive: JsonField<Long>,
         private val phoneNumber: JsonField<String>,
+        private val planKind: JsonField<PlanKind>,
         private val additionalProperties: MutableMap<String, JsonValue>,
     ) {
 
@@ -633,7 +634,10 @@ private constructor(
             @JsonProperty("phone_number")
             @ExcludeMissing
             phoneNumber: JsonField<String> = JsonMissing.of(),
-        ) : this(isActive, lastActive, phoneNumber, mutableMapOf())
+            @JsonProperty("plan_kind")
+            @ExcludeMissing
+            planKind: JsonField<PlanKind> = JsonMissing.of(),
+        ) : this(isActive, lastActive, phoneNumber, planKind, mutableMapOf())
 
         /**
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
@@ -654,6 +658,15 @@ private constructor(
          *   server responded with an unexpected value).
          */
         fun phoneNumber(): Optional<String> = phoneNumber.getOptional("phone_number")
+
+        /**
+         * Plan type the underlying allocation runs on. `inbound` numbers are reply-only — see
+         * `/me/numbers` for details.
+         *
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
+         */
+        fun planKind(): Optional<PlanKind> = planKind.getOptional("plan_kind")
 
         /**
          * Returns the raw JSON value of [isActive].
@@ -677,6 +690,13 @@ private constructor(
         @JsonProperty("phone_number")
         @ExcludeMissing
         fun _phoneNumber(): JsonField<String> = phoneNumber
+
+        /**
+         * Returns the raw JSON value of [planKind].
+         *
+         * Unlike [planKind], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("plan_kind") @ExcludeMissing fun _planKind(): JsonField<PlanKind> = planKind
 
         @JsonAnySetter
         private fun putAdditionalProperty(key: String, value: JsonValue) {
@@ -702,6 +722,7 @@ private constructor(
             private var isActive: JsonField<Boolean> = JsonMissing.of()
             private var lastActive: JsonField<Long> = JsonMissing.of()
             private var phoneNumber: JsonField<String> = JsonMissing.of()
+            private var planKind: JsonField<PlanKind> = JsonMissing.of()
             private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
             @JvmSynthetic
@@ -709,6 +730,7 @@ private constructor(
                 isActive = device.isActive
                 lastActive = device.lastActive
                 phoneNumber = device.phoneNumber
+                planKind = device.planKind
                 additionalProperties = device.additionalProperties.toMutableMap()
             }
 
@@ -761,6 +783,24 @@ private constructor(
                 this.phoneNumber = phoneNumber
             }
 
+            /**
+             * Plan type the underlying allocation runs on. `inbound` numbers are reply-only — see
+             * `/me/numbers` for details.
+             */
+            fun planKind(planKind: PlanKind?) = planKind(JsonField.ofNullable(planKind))
+
+            /** Alias for calling [Builder.planKind] with `planKind.orElse(null)`. */
+            fun planKind(planKind: Optional<PlanKind>) = planKind(planKind.getOrNull())
+
+            /**
+             * Sets [Builder.planKind] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.planKind] with a well-typed [PlanKind] value
+             * instead. This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun planKind(planKind: JsonField<PlanKind>) = apply { this.planKind = planKind }
+
             fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
                 this.additionalProperties.clear()
                 putAllAdditionalProperties(additionalProperties)
@@ -786,7 +826,13 @@ private constructor(
              * Further updates to this [Builder] will not mutate the returned instance.
              */
             fun build(): Device =
-                Device(isActive, lastActive, phoneNumber, additionalProperties.toMutableMap())
+                Device(
+                    isActive,
+                    lastActive,
+                    phoneNumber,
+                    planKind,
+                    additionalProperties.toMutableMap(),
+                )
         }
 
         private var validated: Boolean = false
@@ -808,6 +854,7 @@ private constructor(
             isActive()
             lastActive()
             phoneNumber()
+            planKind().ifPresent { it.validate() }
             validated = true
         }
 
@@ -829,7 +876,170 @@ private constructor(
         internal fun validity(): Int =
             (if (isActive.asKnown().isPresent) 1 else 0) +
                 (if (lastActive.asKnown().isPresent) 1 else 0) +
-                (if (phoneNumber.asKnown().isPresent) 1 else 0)
+                (if (phoneNumber.asKnown().isPresent) 1 else 0) +
+                (planKind.asKnown().getOrNull()?.validity() ?: 0)
+
+        /**
+         * Plan type the underlying allocation runs on. `inbound` numbers are reply-only — see
+         * `/me/numbers` for details.
+         */
+        class PlanKind @JsonCreator private constructor(private val value: JsonField<String>) :
+            Enum {
+
+            /**
+             * Returns this class instance's raw value.
+             *
+             * This is usually only useful if this instance was deserialized from data that doesn't
+             * match any known member, and you want to know that value. For example, if the SDK is
+             * on an older version than the API, then the API may respond with new members that the
+             * SDK is unaware of.
+             */
+            @com.fasterxml.jackson.annotation.JsonValue fun _value(): JsonField<String> = value
+
+            companion object {
+
+                @JvmField val SHARED = of("shared")
+
+                @JvmField val DEDICATED = of("dedicated")
+
+                @JvmField val INBOUND = of("inbound")
+
+                @JvmField val TRIAL = of("trial")
+
+                @JvmField val _2FA = of("2fa")
+
+                @JvmStatic fun of(value: String) = PlanKind(JsonField.of(value))
+            }
+
+            /** An enum containing [PlanKind]'s known values. */
+            enum class Known {
+                SHARED,
+                DEDICATED,
+                INBOUND,
+                TRIAL,
+                _2FA,
+            }
+
+            /**
+             * An enum containing [PlanKind]'s known values, as well as an [_UNKNOWN] member.
+             *
+             * An instance of [PlanKind] can contain an unknown value in a couple of cases:
+             * - It was deserialized from data that doesn't match any known member. For example, if
+             *   the SDK is on an older version than the API, then the API may respond with new
+             *   members that the SDK is unaware of.
+             * - It was constructed with an arbitrary value using the [of] method.
+             */
+            enum class Value {
+                SHARED,
+                DEDICATED,
+                INBOUND,
+                TRIAL,
+                _2FA,
+                /**
+                 * An enum member indicating that [PlanKind] was instantiated with an unknown value.
+                 */
+                _UNKNOWN,
+            }
+
+            /**
+             * Returns an enum member corresponding to this class instance's value, or
+             * [Value._UNKNOWN] if the class was instantiated with an unknown value.
+             *
+             * Use the [known] method instead if you're certain the value is always known or if you
+             * want to throw for the unknown case.
+             */
+            fun value(): Value =
+                when (this) {
+                    SHARED -> Value.SHARED
+                    DEDICATED -> Value.DEDICATED
+                    INBOUND -> Value.INBOUND
+                    TRIAL -> Value.TRIAL
+                    _2FA -> Value._2FA
+                    else -> Value._UNKNOWN
+                }
+
+            /**
+             * Returns an enum member corresponding to this class instance's value.
+             *
+             * Use the [value] method instead if you're uncertain the value is always known and
+             * don't want to throw for the unknown case.
+             *
+             * @throws BlooioInvalidDataException if this class instance's value is a not a known
+             *   member.
+             */
+            fun known(): Known =
+                when (this) {
+                    SHARED -> Known.SHARED
+                    DEDICATED -> Known.DEDICATED
+                    INBOUND -> Known.INBOUND
+                    TRIAL -> Known.TRIAL
+                    _2FA -> Known._2FA
+                    else -> throw BlooioInvalidDataException("Unknown PlanKind: $value")
+                }
+
+            /**
+             * Returns this class instance's primitive wire representation.
+             *
+             * This differs from the [toString] method because that method is primarily for
+             * debugging and generally doesn't throw.
+             *
+             * @throws BlooioInvalidDataException if this class instance's value does not have the
+             *   expected primitive type.
+             */
+            fun asString(): String =
+                _value().asString().orElseThrow {
+                    BlooioInvalidDataException("Value is not a String")
+                }
+
+            private var validated: Boolean = false
+
+            /**
+             * Validates that the types of all values in this object match their expected types
+             * recursively.
+             *
+             * This method is _not_ forwards compatible with new types from the API for existing
+             * fields.
+             *
+             * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+             *   expected type.
+             */
+            fun validate(): PlanKind = apply {
+                if (validated) {
+                    return@apply
+                }
+
+                known()
+                validated = true
+            }
+
+            fun isValid(): Boolean =
+                try {
+                    validate()
+                    true
+                } catch (e: BlooioInvalidDataException) {
+                    false
+                }
+
+            /**
+             * Returns a score indicating how many valid values are contained in this object
+             * recursively.
+             *
+             * Used for best match union deserialization.
+             */
+            @JvmSynthetic internal fun validity(): Int = if (value() == Value._UNKNOWN) 0 else 1
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) {
+                    return true
+                }
+
+                return other is PlanKind && value == other.value
+            }
+
+            override fun hashCode() = value.hashCode()
+
+            override fun toString() = value.toString()
+        }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) {
@@ -840,17 +1050,18 @@ private constructor(
                 isActive == other.isActive &&
                 lastActive == other.lastActive &&
                 phoneNumber == other.phoneNumber &&
+                planKind == other.planKind &&
                 additionalProperties == other.additionalProperties
         }
 
         private val hashCode: Int by lazy {
-            Objects.hash(isActive, lastActive, phoneNumber, additionalProperties)
+            Objects.hash(isActive, lastActive, phoneNumber, planKind, additionalProperties)
         }
 
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Device{isActive=$isActive, lastActive=$lastActive, phoneNumber=$phoneNumber, additionalProperties=$additionalProperties}"
+            "Device{isActive=$isActive, lastActive=$lastActive, phoneNumber=$phoneNumber, planKind=$planKind, additionalProperties=$additionalProperties}"
     }
 
     class Organization
