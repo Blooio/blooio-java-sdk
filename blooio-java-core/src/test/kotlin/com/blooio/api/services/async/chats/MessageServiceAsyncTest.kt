@@ -105,6 +105,7 @@ internal class MessageServiceAsyncTest {
                     .chatId("chatId")
                     .idempotencyKey("Idempotency-Key")
                     .addAttachment("string")
+                    .effect(MessageSendParams.Effect.SLAM)
                     .fromNumber("from_number")
                     .linkPreview(
                         LinkPreview.builder().imageUrl("https://example.com").title("title").build()
