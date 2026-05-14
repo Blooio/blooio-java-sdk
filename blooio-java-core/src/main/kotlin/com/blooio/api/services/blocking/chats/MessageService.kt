@@ -141,6 +141,12 @@ interface MessageService {
      * For multi-recipient, an unnamed group is automatically created or reused if the exact
      * participant combination already exists. For explicit groups, the group must be linked to an
      * existing iMessage chat.
+     *
+     * **iMessage send-with-effect:** set the optional `effect` field to attach an Apple expressive
+     * send (slam, loud, gentle, invisible-ink) or screen effect (echo, spotlight, balloons,
+     * confetti, love, lasers, fireworks, celebration). Effects are an iMessage-only feature — when
+     * the recipient is on SMS/RCS the message is delivered without the animation. Effects are not
+     * supported in multipart (`parts`) mode.
      */
     fun send(chatId: String): MessageSendResponse = send(chatId, MessageSendParams.none())
 

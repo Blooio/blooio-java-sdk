@@ -4,6 +4,7 @@ package com.blooio.api.models.chats.messages
 
 import com.blooio.api.core.BaseDeserializer
 import com.blooio.api.core.BaseSerializer
+import com.blooio.api.core.Enum
 import com.blooio.api.core.ExcludeMissing
 import com.blooio.api.core.JsonField
 import com.blooio.api.core.JsonMissing
@@ -39,6 +40,12 @@ import kotlin.jvm.optionals.getOrNull
  * multi-recipient, an unnamed group is automatically created or reused if the exact participant
  * combination already exists. For explicit groups, the group must be linked to an existing iMessage
  * chat.
+ *
+ * **iMessage send-with-effect:** set the optional `effect` field to attach an Apple expressive send
+ * (slam, loud, gentle, invisible-ink) or screen effect (echo, spotlight, balloons, confetti, love,
+ * lasers, fireworks, celebration). Effects are an iMessage-only feature — when the recipient is on
+ * SMS/RCS the message is delivered without the animation. Effects are not supported in multipart
+ * (`parts`) mode.
  */
 class MessageSendParams
 private constructor(
@@ -60,6 +67,40 @@ private constructor(
      *   server responded with an unexpected value).
      */
     fun attachments(): Optional<List<Attachment>> = body.attachments()
+
+    /**
+     * Optional. Attach an iMessage send-with-effect to the outgoing message.
+     *
+     * **Bubble effects** (apply to a single text bubble):
+     * - `slam` — Slam
+     * - `loud` — Loud
+     * - `gentle` — Gentle
+     * - `invisible-ink` — Invisible Ink
+     *
+     * **Screen effects** (full-screen animation in the recipient's chat):
+     * - `echo` — Echo
+     * - `spotlight` — Spotlight
+     * - `balloons` — Balloons
+     * - `confetti` — Confetti
+     * - `love` — Love (heart)
+     * - `lasers` — Lasers
+     * - `fireworks` — Fireworks
+     * - `celebration` — Celebration (sparkles)
+     *
+     * Values are case-insensitive and accept either dashes or spaces (`"Invisible Ink"` and
+     * `"invisible-ink"` both work). Pass `"none"` or omit the field to send without an effect.
+     *
+     * **Limitations:**
+     * - iMessage-only — when the chat is delivered as SMS or RCS the message is sent without an
+     *   animation.
+     * - Not supported alongside the `parts` array (multipart bubbles cannot carry an effect). Use
+     *   the top-level `text` field instead.
+     * - When `text` is an array, every message in the array is sent with the same effect.
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun effect(): Optional<Effect> = body.effect()
 
     /**
      * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
@@ -128,6 +169,13 @@ private constructor(
      * Unlike [attachments], this method doesn't throw if the JSON field has an unexpected type.
      */
     fun _attachments(): JsonField<List<Attachment>> = body._attachments()
+
+    /**
+     * Returns the raw JSON value of [effect].
+     *
+     * Unlike [effect], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    fun _effect(): JsonField<Effect> = body._effect()
 
     /**
      * Returns the raw JSON value of [fromNumber].
@@ -225,10 +273,10 @@ private constructor(
          * This is generally only useful if you are already constructing the body separately.
          * Otherwise, it's more convenient to use the top-level setters instead:
          * - [attachments]
+         * - [effect]
          * - [fromNumber]
          * - [linkPreview]
          * - [parts]
-         * - [shareContact]
          * - etc.
          */
         fun body(body: Body) = apply { this.body = body.toBuilder() }
@@ -264,6 +312,48 @@ private constructor(
         fun addAttachment(unionObjectVariant1: Attachment.UnionObjectVariant1) = apply {
             body.addAttachment(unionObjectVariant1)
         }
+
+        /**
+         * Optional. Attach an iMessage send-with-effect to the outgoing message.
+         *
+         * **Bubble effects** (apply to a single text bubble):
+         * - `slam` — Slam
+         * - `loud` — Loud
+         * - `gentle` — Gentle
+         * - `invisible-ink` — Invisible Ink
+         *
+         * **Screen effects** (full-screen animation in the recipient's chat):
+         * - `echo` — Echo
+         * - `spotlight` — Spotlight
+         * - `balloons` — Balloons
+         * - `confetti` — Confetti
+         * - `love` — Love (heart)
+         * - `lasers` — Lasers
+         * - `fireworks` — Fireworks
+         * - `celebration` — Celebration (sparkles)
+         *
+         * Values are case-insensitive and accept either dashes or spaces (`"Invisible Ink"` and
+         * `"invisible-ink"` both work). Pass `"none"` or omit the field to send without an effect.
+         *
+         * **Limitations:**
+         * - iMessage-only — when the chat is delivered as SMS or RCS the message is sent without an
+         *   animation.
+         * - Not supported alongside the `parts` array (multipart bubbles cannot carry an effect).
+         *   Use the top-level `text` field instead.
+         * - When `text` is an array, every message in the array is sent with the same effect.
+         */
+        fun effect(effect: Effect?) = apply { body.effect(effect) }
+
+        /** Alias for calling [Builder.effect] with `effect.orElse(null)`. */
+        fun effect(effect: Optional<Effect>) = effect(effect.getOrNull())
+
+        /**
+         * Sets [Builder.effect] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.effect] with a well-typed [Effect] value instead. This
+         * method is primarily for setting the field to an undocumented or not yet supported value.
+         */
+        fun effect(effect: JsonField<Effect>) = apply { body.effect(effect) }
 
         /**
          * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
@@ -539,6 +629,7 @@ private constructor(
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
         private val attachments: JsonField<List<Attachment>>,
+        private val effect: JsonField<Effect>,
         private val fromNumber: JsonField<String>,
         private val linkPreview: JsonField<LinkPreview>,
         private val parts: JsonField<List<Part>>,
@@ -553,6 +644,7 @@ private constructor(
             @JsonProperty("attachments")
             @ExcludeMissing
             attachments: JsonField<List<Attachment>> = JsonMissing.of(),
+            @JsonProperty("effect") @ExcludeMissing effect: JsonField<Effect> = JsonMissing.of(),
             @JsonProperty("from_number")
             @ExcludeMissing
             fromNumber: JsonField<String> = JsonMissing.of(),
@@ -569,6 +661,7 @@ private constructor(
             useTypingIndicator: JsonField<Boolean> = JsonMissing.of(),
         ) : this(
             attachments,
+            effect,
             fromNumber,
             linkPreview,
             parts,
@@ -585,6 +678,40 @@ private constructor(
          *   server responded with an unexpected value).
          */
         fun attachments(): Optional<List<Attachment>> = attachments.getOptional("attachments")
+
+        /**
+         * Optional. Attach an iMessage send-with-effect to the outgoing message.
+         *
+         * **Bubble effects** (apply to a single text bubble):
+         * - `slam` — Slam
+         * - `loud` — Loud
+         * - `gentle` — Gentle
+         * - `invisible-ink` — Invisible Ink
+         *
+         * **Screen effects** (full-screen animation in the recipient's chat):
+         * - `echo` — Echo
+         * - `spotlight` — Spotlight
+         * - `balloons` — Balloons
+         * - `confetti` — Confetti
+         * - `love` — Love (heart)
+         * - `lasers` — Lasers
+         * - `fireworks` — Fireworks
+         * - `celebration` — Celebration (sparkles)
+         *
+         * Values are case-insensitive and accept either dashes or spaces (`"Invisible Ink"` and
+         * `"invisible-ink"` both work). Pass `"none"` or omit the field to send without an effect.
+         *
+         * **Limitations:**
+         * - iMessage-only — when the chat is delivered as SMS or RCS the message is sent without an
+         *   animation.
+         * - Not supported alongside the `parts` array (multipart bubbles cannot carry an effect).
+         *   Use the top-level `text` field instead.
+         * - When `text` is an array, every message in the array is sent with the same effect.
+         *
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
+         */
+        fun effect(): Optional<Effect> = effect.getOptional("effect")
 
         /**
          * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
@@ -657,6 +784,13 @@ private constructor(
         @JsonProperty("attachments")
         @ExcludeMissing
         fun _attachments(): JsonField<List<Attachment>> = attachments
+
+        /**
+         * Returns the raw JSON value of [effect].
+         *
+         * Unlike [effect], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("effect") @ExcludeMissing fun _effect(): JsonField<Effect> = effect
 
         /**
          * Returns the raw JSON value of [fromNumber].
@@ -732,6 +866,7 @@ private constructor(
         class Builder internal constructor() {
 
             private var attachments: JsonField<MutableList<Attachment>>? = null
+            private var effect: JsonField<Effect> = JsonMissing.of()
             private var fromNumber: JsonField<String> = JsonMissing.of()
             private var linkPreview: JsonField<LinkPreview> = JsonMissing.of()
             private var parts: JsonField<MutableList<Part>>? = null
@@ -743,6 +878,7 @@ private constructor(
             @JvmSynthetic
             internal fun from(body: Body) = apply {
                 attachments = body.attachments.map { it.toMutableList() }
+                effect = body.effect
                 fromNumber = body.fromNumber
                 linkPreview = body.linkPreview
                 parts = body.parts.map { it.toMutableList() }
@@ -787,6 +923,50 @@ private constructor(
              */
             fun addAttachment(unionObjectVariant1: Attachment.UnionObjectVariant1) =
                 addAttachment(Attachment.ofUnionObjectVariant1(unionObjectVariant1))
+
+            /**
+             * Optional. Attach an iMessage send-with-effect to the outgoing message.
+             *
+             * **Bubble effects** (apply to a single text bubble):
+             * - `slam` — Slam
+             * - `loud` — Loud
+             * - `gentle` — Gentle
+             * - `invisible-ink` — Invisible Ink
+             *
+             * **Screen effects** (full-screen animation in the recipient's chat):
+             * - `echo` — Echo
+             * - `spotlight` — Spotlight
+             * - `balloons` — Balloons
+             * - `confetti` — Confetti
+             * - `love` — Love (heart)
+             * - `lasers` — Lasers
+             * - `fireworks` — Fireworks
+             * - `celebration` — Celebration (sparkles)
+             *
+             * Values are case-insensitive and accept either dashes or spaces (`"Invisible Ink"` and
+             * `"invisible-ink"` both work). Pass `"none"` or omit the field to send without an
+             * effect.
+             *
+             * **Limitations:**
+             * - iMessage-only — when the chat is delivered as SMS or RCS the message is sent
+             *   without an animation.
+             * - Not supported alongside the `parts` array (multipart bubbles cannot carry an
+             *   effect). Use the top-level `text` field instead.
+             * - When `text` is an array, every message in the array is sent with the same effect.
+             */
+            fun effect(effect: Effect?) = effect(JsonField.ofNullable(effect))
+
+            /** Alias for calling [Builder.effect] with `effect.orElse(null)`. */
+            fun effect(effect: Optional<Effect>) = effect(effect.getOrNull())
+
+            /**
+             * Sets [Builder.effect] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.effect] with a well-typed [Effect] value instead.
+             * This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun effect(effect: JsonField<Effect>) = apply { this.effect = effect }
 
             /**
              * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted,
@@ -945,6 +1125,7 @@ private constructor(
             fun build(): Body =
                 Body(
                     (attachments ?: JsonMissing.of()).map { it.toImmutable() },
+                    effect,
                     fromNumber,
                     linkPreview,
                     (parts ?: JsonMissing.of()).map { it.toImmutable() },
@@ -972,6 +1153,7 @@ private constructor(
             }
 
             attachments().ifPresent { it.forEach { it.validate() } }
+            effect().ifPresent { it.validate() }
             fromNumber()
             linkPreview().ifPresent { it.validate() }
             parts().ifPresent { it.forEach { it.validate() } }
@@ -998,6 +1180,7 @@ private constructor(
         @JvmSynthetic
         internal fun validity(): Int =
             (attachments.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
+                (effect.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (fromNumber.asKnown().isPresent) 1 else 0) +
                 (linkPreview.asKnown().getOrNull()?.validity() ?: 0) +
                 (parts.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
@@ -1012,6 +1195,7 @@ private constructor(
 
             return other is Body &&
                 attachments == other.attachments &&
+                effect == other.effect &&
                 fromNumber == other.fromNumber &&
                 linkPreview == other.linkPreview &&
                 parts == other.parts &&
@@ -1024,6 +1208,7 @@ private constructor(
         private val hashCode: Int by lazy {
             Objects.hash(
                 attachments,
+                effect,
                 fromNumber,
                 linkPreview,
                 parts,
@@ -1037,7 +1222,7 @@ private constructor(
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Body{attachments=$attachments, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
+            "Body{attachments=$attachments, effect=$effect, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
     }
 
     /** URL to the attachment */
@@ -1467,6 +1652,235 @@ private constructor(
             override fun toString() =
                 "UnionObjectVariant1{url=$url, name=$name, additionalProperties=$additionalProperties}"
         }
+    }
+
+    /**
+     * Optional. Attach an iMessage send-with-effect to the outgoing message.
+     *
+     * **Bubble effects** (apply to a single text bubble):
+     * - `slam` — Slam
+     * - `loud` — Loud
+     * - `gentle` — Gentle
+     * - `invisible-ink` — Invisible Ink
+     *
+     * **Screen effects** (full-screen animation in the recipient's chat):
+     * - `echo` — Echo
+     * - `spotlight` — Spotlight
+     * - `balloons` — Balloons
+     * - `confetti` — Confetti
+     * - `love` — Love (heart)
+     * - `lasers` — Lasers
+     * - `fireworks` — Fireworks
+     * - `celebration` — Celebration (sparkles)
+     *
+     * Values are case-insensitive and accept either dashes or spaces (`"Invisible Ink"` and
+     * `"invisible-ink"` both work). Pass `"none"` or omit the field to send without an effect.
+     *
+     * **Limitations:**
+     * - iMessage-only — when the chat is delivered as SMS or RCS the message is sent without an
+     *   animation.
+     * - Not supported alongside the `parts` array (multipart bubbles cannot carry an effect). Use
+     *   the top-level `text` field instead.
+     * - When `text` is an array, every message in the array is sent with the same effect.
+     */
+    class Effect @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
+
+        /**
+         * Returns this class instance's raw value.
+         *
+         * This is usually only useful if this instance was deserialized from data that doesn't
+         * match any known member, and you want to know that value. For example, if the SDK is on an
+         * older version than the API, then the API may respond with new members that the SDK is
+         * unaware of.
+         */
+        @com.fasterxml.jackson.annotation.JsonValue fun _value(): JsonField<String> = value
+
+        companion object {
+
+            @JvmField val SLAM = of("slam")
+
+            @JvmField val LOUD = of("loud")
+
+            @JvmField val GENTLE = of("gentle")
+
+            @JvmField val INVISIBLE_INK = of("invisible-ink")
+
+            @JvmField val ECHO = of("echo")
+
+            @JvmField val SPOTLIGHT = of("spotlight")
+
+            @JvmField val BALLOONS = of("balloons")
+
+            @JvmField val CONFETTI = of("confetti")
+
+            @JvmField val LOVE = of("love")
+
+            @JvmField val LASERS = of("lasers")
+
+            @JvmField val FIREWORKS = of("fireworks")
+
+            @JvmField val CELEBRATION = of("celebration")
+
+            @JvmField val NONE = of("none")
+
+            @JvmStatic fun of(value: String) = Effect(JsonField.of(value))
+        }
+
+        /** An enum containing [Effect]'s known values. */
+        enum class Known {
+            SLAM,
+            LOUD,
+            GENTLE,
+            INVISIBLE_INK,
+            ECHO,
+            SPOTLIGHT,
+            BALLOONS,
+            CONFETTI,
+            LOVE,
+            LASERS,
+            FIREWORKS,
+            CELEBRATION,
+            NONE,
+        }
+
+        /**
+         * An enum containing [Effect]'s known values, as well as an [_UNKNOWN] member.
+         *
+         * An instance of [Effect] can contain an unknown value in a couple of cases:
+         * - It was deserialized from data that doesn't match any known member. For example, if the
+         *   SDK is on an older version than the API, then the API may respond with new members that
+         *   the SDK is unaware of.
+         * - It was constructed with an arbitrary value using the [of] method.
+         */
+        enum class Value {
+            SLAM,
+            LOUD,
+            GENTLE,
+            INVISIBLE_INK,
+            ECHO,
+            SPOTLIGHT,
+            BALLOONS,
+            CONFETTI,
+            LOVE,
+            LASERS,
+            FIREWORKS,
+            CELEBRATION,
+            NONE,
+            /** An enum member indicating that [Effect] was instantiated with an unknown value. */
+            _UNKNOWN,
+        }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value, or [Value._UNKNOWN]
+         * if the class was instantiated with an unknown value.
+         *
+         * Use the [known] method instead if you're certain the value is always known or if you want
+         * to throw for the unknown case.
+         */
+        fun value(): Value =
+            when (this) {
+                SLAM -> Value.SLAM
+                LOUD -> Value.LOUD
+                GENTLE -> Value.GENTLE
+                INVISIBLE_INK -> Value.INVISIBLE_INK
+                ECHO -> Value.ECHO
+                SPOTLIGHT -> Value.SPOTLIGHT
+                BALLOONS -> Value.BALLOONS
+                CONFETTI -> Value.CONFETTI
+                LOVE -> Value.LOVE
+                LASERS -> Value.LASERS
+                FIREWORKS -> Value.FIREWORKS
+                CELEBRATION -> Value.CELEBRATION
+                NONE -> Value.NONE
+                else -> Value._UNKNOWN
+            }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value.
+         *
+         * Use the [value] method instead if you're uncertain the value is always known and don't
+         * want to throw for the unknown case.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value is a not a known
+         *   member.
+         */
+        fun known(): Known =
+            when (this) {
+                SLAM -> Known.SLAM
+                LOUD -> Known.LOUD
+                GENTLE -> Known.GENTLE
+                INVISIBLE_INK -> Known.INVISIBLE_INK
+                ECHO -> Known.ECHO
+                SPOTLIGHT -> Known.SPOTLIGHT
+                BALLOONS -> Known.BALLOONS
+                CONFETTI -> Known.CONFETTI
+                LOVE -> Known.LOVE
+                LASERS -> Known.LASERS
+                FIREWORKS -> Known.FIREWORKS
+                CELEBRATION -> Known.CELEBRATION
+                NONE -> Known.NONE
+                else -> throw BlooioInvalidDataException("Unknown Effect: $value")
+            }
+
+        /**
+         * Returns this class instance's primitive wire representation.
+         *
+         * This differs from the [toString] method because that method is primarily for debugging
+         * and generally doesn't throw.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value does not have the
+         *   expected primitive type.
+         */
+        fun asString(): String =
+            _value().asString().orElseThrow { BlooioInvalidDataException("Value is not a String") }
+
+        private var validated: Boolean = false
+
+        /**
+         * Validates that the types of all values in this object match their expected types
+         * recursively.
+         *
+         * This method is _not_ forwards compatible with new types from the API for existing fields.
+         *
+         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+         *   expected type.
+         */
+        fun validate(): Effect = apply {
+            if (validated) {
+                return@apply
+            }
+
+            known()
+            validated = true
+        }
+
+        fun isValid(): Boolean =
+            try {
+                validate()
+                true
+            } catch (e: BlooioInvalidDataException) {
+                false
+            }
+
+        /**
+         * Returns a score indicating how many valid values are contained in this object
+         * recursively.
+         *
+         * Used for best match union deserialization.
+         */
+        @JvmSynthetic internal fun validity(): Int = if (value() == Value._UNKNOWN) 0 else 1
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) {
+                return true
+            }
+
+            return other is Effect && value == other.value
+        }
+
+        override fun hashCode() = value.hashCode()
+
+        override fun toString() = value.toString()
     }
 
     class Part
