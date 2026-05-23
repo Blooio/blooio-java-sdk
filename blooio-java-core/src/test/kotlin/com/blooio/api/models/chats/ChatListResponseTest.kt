@@ -18,6 +18,8 @@ internal class ChatListResponseTest {
                 .addChat(
                     ChatListResponse.Chat.builder()
                         .id("id")
+                        .backgroundId("background_id")
+                        .backgroundUrl("https://example.com")
                         .contact(
                             ChatListResponse.Chat.Contact.builder()
                                 .contactId("contact_id")
@@ -53,6 +55,8 @@ internal class ChatListResponseTest {
             .containsExactly(
                 ChatListResponse.Chat.builder()
                     .id("id")
+                    .backgroundId("background_id")
+                    .backgroundUrl("https://example.com")
                     .contact(
                         ChatListResponse.Chat.Contact.builder()
                             .contactId("contact_id")
@@ -93,6 +97,8 @@ internal class ChatListResponseTest {
                 .addChat(
                     ChatListResponse.Chat.builder()
                         .id("id")
+                        .backgroundId("background_id")
+                        .backgroundUrl("https://example.com")
                         .contact(
                             ChatListResponse.Chat.Contact.builder()
                                 .contactId("contact_id")
