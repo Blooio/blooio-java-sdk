@@ -204,8 +204,6 @@ private constructor(
     @JsonCreator(mode = JsonCreator.Mode.DISABLED)
     private constructor(
         private val id: JsonField<String>,
-        private val backgroundId: JsonField<String>,
-        private val backgroundUrl: JsonField<String>,
         private val contact: JsonField<Contact>,
         private val groupId: JsonField<String>,
         private val groupName: JsonField<String>,
@@ -225,12 +223,6 @@ private constructor(
         @JsonCreator
         private constructor(
             @JsonProperty("id") @ExcludeMissing id: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("background_id")
-            @ExcludeMissing
-            backgroundId: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("background_url")
-            @ExcludeMissing
-            backgroundUrl: JsonField<String> = JsonMissing.of(),
             @JsonProperty("contact") @ExcludeMissing contact: JsonField<Contact> = JsonMissing.of(),
             @JsonProperty("group_id") @ExcludeMissing groupId: JsonField<String> = JsonMissing.of(),
             @JsonProperty("group_name")
@@ -266,8 +258,6 @@ private constructor(
             @JsonProperty("type") @ExcludeMissing type: JsonField<Type> = JsonMissing.of(),
         ) : this(
             id,
-            backgroundId,
-            backgroundUrl,
             contact,
             groupId,
             groupName,
@@ -291,22 +281,6 @@ private constructor(
          *   server responded with an unexpected value).
          */
         fun id(): Optional<String> = id.getOptional("id")
-
-        /**
-         * Identifier for the active chat background
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun backgroundId(): Optional<String> = backgroundId.getOptional("background_id")
-
-        /**
-         * Public URL of the chat background image (if one has been set via the API)
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun backgroundUrl(): Optional<String> = backgroundUrl.getOptional("background_url")
 
         /**
          * Contact info (only for non-group chats)
@@ -402,26 +376,6 @@ private constructor(
          * Unlike [id], this method doesn't throw if the JSON field has an unexpected type.
          */
         @JsonProperty("id") @ExcludeMissing fun _id(): JsonField<String> = id
-
-        /**
-         * Returns the raw JSON value of [backgroundId].
-         *
-         * Unlike [backgroundId], this method doesn't throw if the JSON field has an unexpected
-         * type.
-         */
-        @JsonProperty("background_id")
-        @ExcludeMissing
-        fun _backgroundId(): JsonField<String> = backgroundId
-
-        /**
-         * Returns the raw JSON value of [backgroundUrl].
-         *
-         * Unlike [backgroundUrl], this method doesn't throw if the JSON field has an unexpected
-         * type.
-         */
-        @JsonProperty("background_url")
-        @ExcludeMissing
-        fun _backgroundUrl(): JsonField<String> = backgroundUrl
 
         /**
          * Returns the raw JSON value of [contact].
@@ -558,8 +512,6 @@ private constructor(
         class Builder internal constructor() {
 
             private var id: JsonField<String> = JsonMissing.of()
-            private var backgroundId: JsonField<String> = JsonMissing.of()
-            private var backgroundUrl: JsonField<String> = JsonMissing.of()
             private var contact: JsonField<Contact> = JsonMissing.of()
             private var groupId: JsonField<String> = JsonMissing.of()
             private var groupName: JsonField<String> = JsonMissing.of()
@@ -578,8 +530,6 @@ private constructor(
             @JvmSynthetic
             internal fun from(chat: Chat) = apply {
                 id = chat.id
-                backgroundId = chat.backgroundId
-                backgroundUrl = chat.backgroundUrl
                 contact = chat.contact
                 groupId = chat.groupId
                 groupName = chat.groupName
@@ -607,44 +557,6 @@ private constructor(
              * value.
              */
             fun id(id: JsonField<String>) = apply { this.id = id }
-
-            /** Identifier for the active chat background */
-            fun backgroundId(backgroundId: String?) =
-                backgroundId(JsonField.ofNullable(backgroundId))
-
-            /** Alias for calling [Builder.backgroundId] with `backgroundId.orElse(null)`. */
-            fun backgroundId(backgroundId: Optional<String>) =
-                backgroundId(backgroundId.getOrNull())
-
-            /**
-             * Sets [Builder.backgroundId] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.backgroundId] with a well-typed [String] value
-             * instead. This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun backgroundId(backgroundId: JsonField<String>) = apply {
-                this.backgroundId = backgroundId
-            }
-
-            /** Public URL of the chat background image (if one has been set via the API) */
-            fun backgroundUrl(backgroundUrl: String?) =
-                backgroundUrl(JsonField.ofNullable(backgroundUrl))
-
-            /** Alias for calling [Builder.backgroundUrl] with `backgroundUrl.orElse(null)`. */
-            fun backgroundUrl(backgroundUrl: Optional<String>) =
-                backgroundUrl(backgroundUrl.getOrNull())
-
-            /**
-             * Sets [Builder.backgroundUrl] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.backgroundUrl] with a well-typed [String] value
-             * instead. This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun backgroundUrl(backgroundUrl: JsonField<String>) = apply {
-                this.backgroundUrl = backgroundUrl
-            }
 
             /** Contact info (only for non-group chats) */
             fun contact(contact: Contact?) = contact(JsonField.ofNullable(contact))
@@ -872,8 +784,6 @@ private constructor(
             fun build(): Chat =
                 Chat(
                     id,
-                    backgroundId,
-                    backgroundUrl,
                     contact,
                     groupId,
                     groupName,
@@ -908,8 +818,6 @@ private constructor(
             }
 
             id()
-            backgroundId()
-            backgroundUrl()
             contact().ifPresent { it.validate() }
             groupId()
             groupName()
@@ -943,8 +851,6 @@ private constructor(
         @JvmSynthetic
         internal fun validity(): Int =
             (if (id.asKnown().isPresent) 1 else 0) +
-                (if (backgroundId.asKnown().isPresent) 1 else 0) +
-                (if (backgroundUrl.asKnown().isPresent) 1 else 0) +
                 (contact.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (groupId.asKnown().isPresent) 1 else 0) +
                 (if (groupName.asKnown().isPresent) 1 else 0) +
@@ -1343,8 +1249,6 @@ private constructor(
 
             return other is Chat &&
                 id == other.id &&
-                backgroundId == other.backgroundId &&
-                backgroundUrl == other.backgroundUrl &&
                 contact == other.contact &&
                 groupId == other.groupId &&
                 groupName == other.groupName &&
@@ -1364,8 +1268,6 @@ private constructor(
         private val hashCode: Int by lazy {
             Objects.hash(
                 id,
-                backgroundId,
-                backgroundUrl,
                 contact,
                 groupId,
                 groupName,
@@ -1386,7 +1288,7 @@ private constructor(
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Chat{id=$id, backgroundId=$backgroundId, backgroundUrl=$backgroundUrl, contact=$contact, groupId=$groupId, groupName=$groupName, inboundCount=$inboundCount, isGroup=$isGroup, lastInboundTime=$lastInboundTime, lastMessage=$lastMessage, lastMessageTime=$lastMessageTime, lastOutboundTime=$lastOutboundTime, memberCount=$memberCount, messageCount=$messageCount, outboundCount=$outboundCount, type=$type, additionalProperties=$additionalProperties}"
+            "Chat{id=$id, contact=$contact, groupId=$groupId, groupName=$groupName, inboundCount=$inboundCount, isGroup=$isGroup, lastInboundTime=$lastInboundTime, lastMessage=$lastMessage, lastMessageTime=$lastMessageTime, lastOutboundTime=$lastOutboundTime, memberCount=$memberCount, messageCount=$messageCount, outboundCount=$outboundCount, type=$type, additionalProperties=$additionalProperties}"
     }
 
     override fun equals(other: Any?): Boolean {

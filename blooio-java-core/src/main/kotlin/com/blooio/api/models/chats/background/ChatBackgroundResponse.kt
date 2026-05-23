@@ -21,7 +21,6 @@ class ChatBackgroundResponse
 @JsonCreator(mode = JsonCreator.Mode.DISABLED)
 private constructor(
     private val backgroundId: JsonField<String>,
-    private val backgroundUrl: JsonField<String>,
     private val backgroundVersion: JsonField<Long>,
     private val changed: JsonField<Boolean>,
     private val chatId: JsonField<String>,
@@ -34,9 +33,6 @@ private constructor(
         @JsonProperty("background_id")
         @ExcludeMissing
         backgroundId: JsonField<String> = JsonMissing.of(),
-        @JsonProperty("background_url")
-        @ExcludeMissing
-        backgroundUrl: JsonField<String> = JsonMissing.of(),
         @JsonProperty("background_version")
         @ExcludeMissing
         backgroundVersion: JsonField<Long> = JsonMissing.of(),
@@ -45,15 +41,7 @@ private constructor(
         @JsonProperty("has_background")
         @ExcludeMissing
         hasBackground: JsonField<Boolean> = JsonMissing.of(),
-    ) : this(
-        backgroundId,
-        backgroundUrl,
-        backgroundVersion,
-        changed,
-        chatId,
-        hasBackground,
-        mutableMapOf(),
-    )
+    ) : this(backgroundId, backgroundVersion, changed, chatId, hasBackground, mutableMapOf())
 
     /**
      * Unique identifier for the current background, or null if none
@@ -62,16 +50,6 @@ private constructor(
      *   server responded with an unexpected value).
      */
     fun backgroundId(): Optional<String> = backgroundId.getOptional("background_id")
-
-    /**
-     * Public URL of the persisted background image stored in R2. Returned after a successful PUT
-     * and on GET when a background has been set through the API. May be null if persistence failed
-     * or the background was set outside of the API.
-     *
-     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-     *   server responded with an unexpected value).
-     */
-    fun backgroundUrl(): Optional<String> = backgroundUrl.getOptional("background_url")
 
     /**
      * Version number of the background (for cache invalidation)
@@ -113,15 +91,6 @@ private constructor(
     @JsonProperty("background_id")
     @ExcludeMissing
     fun _backgroundId(): JsonField<String> = backgroundId
-
-    /**
-     * Returns the raw JSON value of [backgroundUrl].
-     *
-     * Unlike [backgroundUrl], this method doesn't throw if the JSON field has an unexpected type.
-     */
-    @JsonProperty("background_url")
-    @ExcludeMissing
-    fun _backgroundUrl(): JsonField<String> = backgroundUrl
 
     /**
      * Returns the raw JSON value of [backgroundVersion].
@@ -178,7 +147,6 @@ private constructor(
     class Builder internal constructor() {
 
         private var backgroundId: JsonField<String> = JsonMissing.of()
-        private var backgroundUrl: JsonField<String> = JsonMissing.of()
         private var backgroundVersion: JsonField<Long> = JsonMissing.of()
         private var changed: JsonField<Boolean> = JsonMissing.of()
         private var chatId: JsonField<String> = JsonMissing.of()
@@ -188,7 +156,6 @@ private constructor(
         @JvmSynthetic
         internal fun from(chatBackgroundResponse: ChatBackgroundResponse) = apply {
             backgroundId = chatBackgroundResponse.backgroundId
-            backgroundUrl = chatBackgroundResponse.backgroundUrl
             backgroundVersion = chatBackgroundResponse.backgroundVersion
             changed = chatBackgroundResponse.changed
             chatId = chatBackgroundResponse.chatId
@@ -211,29 +178,6 @@ private constructor(
          */
         fun backgroundId(backgroundId: JsonField<String>) = apply {
             this.backgroundId = backgroundId
-        }
-
-        /**
-         * Public URL of the persisted background image stored in R2. Returned after a successful
-         * PUT and on GET when a background has been set through the API. May be null if persistence
-         * failed or the background was set outside of the API.
-         */
-        fun backgroundUrl(backgroundUrl: String?) =
-            backgroundUrl(JsonField.ofNullable(backgroundUrl))
-
-        /** Alias for calling [Builder.backgroundUrl] with `backgroundUrl.orElse(null)`. */
-        fun backgroundUrl(backgroundUrl: Optional<String>) =
-            backgroundUrl(backgroundUrl.getOrNull())
-
-        /**
-         * Sets [Builder.backgroundUrl] to an arbitrary JSON value.
-         *
-         * You should usually call [Builder.backgroundUrl] with a well-typed [String] value instead.
-         * This method is primarily for setting the field to an undocumented or not yet supported
-         * value.
-         */
-        fun backgroundUrl(backgroundUrl: JsonField<String>) = apply {
-            this.backgroundUrl = backgroundUrl
         }
 
         /** Version number of the background (for cache invalidation) */
@@ -326,7 +270,6 @@ private constructor(
         fun build(): ChatBackgroundResponse =
             ChatBackgroundResponse(
                 backgroundId,
-                backgroundUrl,
                 backgroundVersion,
                 changed,
                 chatId,
@@ -351,7 +294,6 @@ private constructor(
         }
 
         backgroundId()
-        backgroundUrl()
         backgroundVersion()
         changed()
         chatId()
@@ -375,7 +317,6 @@ private constructor(
     @JvmSynthetic
     internal fun validity(): Int =
         (if (backgroundId.asKnown().isPresent) 1 else 0) +
-            (if (backgroundUrl.asKnown().isPresent) 1 else 0) +
             (if (backgroundVersion.asKnown().isPresent) 1 else 0) +
             (if (changed.asKnown().isPresent) 1 else 0) +
             (if (chatId.asKnown().isPresent) 1 else 0) +
@@ -388,7 +329,6 @@ private constructor(
 
         return other is ChatBackgroundResponse &&
             backgroundId == other.backgroundId &&
-            backgroundUrl == other.backgroundUrl &&
             backgroundVersion == other.backgroundVersion &&
             changed == other.changed &&
             chatId == other.chatId &&
@@ -399,7 +339,6 @@ private constructor(
     private val hashCode: Int by lazy {
         Objects.hash(
             backgroundId,
-            backgroundUrl,
             backgroundVersion,
             changed,
             chatId,
@@ -411,5 +350,5 @@ private constructor(
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "ChatBackgroundResponse{backgroundId=$backgroundId, backgroundUrl=$backgroundUrl, backgroundVersion=$backgroundVersion, changed=$changed, chatId=$chatId, hasBackground=$hasBackground, additionalProperties=$additionalProperties}"
+        "ChatBackgroundResponse{backgroundId=$backgroundId, backgroundVersion=$backgroundVersion, changed=$changed, chatId=$chatId, hasBackground=$hasBackground, additionalProperties=$additionalProperties}"
 }

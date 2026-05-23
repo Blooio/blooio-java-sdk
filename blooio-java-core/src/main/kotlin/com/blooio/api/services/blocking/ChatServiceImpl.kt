@@ -66,7 +66,7 @@ class ChatServiceImpl internal constructor(private val clientOptions: ClientOpti
     /** Control typing indicators for conversations */
     override fun typing(): TypingService = typing
 
-    /** Set, get, and remove conversation backgrounds */
+    /** View conversations and messages */
     override fun background(): BackgroundService = background
 
     override fun retrieve(
@@ -135,7 +135,7 @@ class ChatServiceImpl internal constructor(private val clientOptions: ClientOpti
         /** Control typing indicators for conversations */
         override fun typing(): TypingService.WithRawResponse = typing
 
-        /** Set, get, and remove conversation backgrounds */
+        /** View conversations and messages */
         override fun background(): BackgroundService.WithRawResponse = background
 
         private val retrieveHandler: Handler<ChatRetrieveResponse> =

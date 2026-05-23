@@ -120,13 +120,6 @@ internal class MessageServiceTest {
                             .url("url")
                             .build()
                     )
-                    .replyTo(
-                        MessageSendParams.ReplyTo.builder()
-                            .guid("guid")
-                            .messageId("message_id")
-                            .partIndex(0L)
-                            .build()
-                    )
                     .shareContact(true)
                     .text("string")
                     .useTypingIndicator(true)

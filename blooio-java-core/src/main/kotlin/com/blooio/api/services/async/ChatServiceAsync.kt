@@ -46,7 +46,7 @@ interface ChatServiceAsync {
     /** Control typing indicators for conversations */
     fun typing(): TypingServiceAsync
 
-    /** Set, get, and remove conversation backgrounds */
+    /** View conversations and messages */
     fun background(): BackgroundServiceAsync
 
     /** Get details for a specific conversation. */
@@ -200,7 +200,7 @@ interface ChatServiceAsync {
         /** Control typing indicators for conversations */
         fun typing(): TypingServiceAsync.WithRawResponse
 
-        /** Set, get, and remove conversation backgrounds */
+        /** View conversations and messages */
         fun background(): BackgroundServiceAsync.WithRawResponse
 
         /**

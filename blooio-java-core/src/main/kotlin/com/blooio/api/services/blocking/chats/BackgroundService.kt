@@ -12,7 +12,7 @@ import com.blooio.api.models.chats.background.ChatBackgroundResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
-/** Set, get, and remove conversation backgrounds */
+/** View conversations and messages */
 interface BackgroundService {
 
     /**
@@ -95,9 +95,18 @@ interface BackgroundService {
     /**
      * Set or update the background image for a conversation. Works for both 1-on-1 and group chats.
      *
-     * The uploaded image is converted into a PosterKit-compatible archive and applied to the
-     * iMessage conversation on the linked device. Supported formats: JPEG, PNG, GIF, WebP,
-     * HEIC/HEIF. Maximum file size: 10 MB.
+     * The request body must be `multipart/form-data` with a single `background` field containing
+     * the **raw image file bytes** (not a URL or base64 string). Supported formats: JPEG, PNG, GIF,
+     * WebP, HEIC/HEIF. Maximum file size: 10 MB.
+     *
+     * **Example with curl** — note the `@` prefix that tells curl to read the file from disk:
+     * ```bash
+     * curl -X PUT "https://backend.blooio.com/v2/api/chats/%2B15551234567/background" \
+     *   -H "Authorization: Bearer YOUR_API_KEY" \
+     *   -F "background=@/path/to/image.jpg;type=image/jpeg"
+     * ```
+     *
+     * When the chat id is a phone number, percent-encode the leading `+` as `%2B` in the URL path.
      */
     fun set(chatId: String, params: BackgroundSetParams): ChatBackgroundResponse =
         set(chatId, params, RequestOptions.none())

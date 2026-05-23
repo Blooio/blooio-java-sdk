@@ -24,7 +24,7 @@ import com.blooio.api.models.chats.background.ChatBackgroundResponse
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
-/** Set, get, and remove conversation backgrounds */
+/** View conversations and messages */
 class BackgroundServiceImpl internal constructor(private val clientOptions: ClientOptions) :
     BackgroundService {
 

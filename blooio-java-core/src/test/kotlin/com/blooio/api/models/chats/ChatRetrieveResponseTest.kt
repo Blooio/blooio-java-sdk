@@ -14,8 +14,6 @@ internal class ChatRetrieveResponseTest {
         val chatRetrieveResponse =
             ChatRetrieveResponse.builder()
                 .id("id")
-                .backgroundId("background_id")
-                .backgroundUrl("https://example.com")
                 .contact(
                     ChatRetrieveResponse.Contact.builder()
                         .contactId("contact_id")
@@ -46,8 +44,6 @@ internal class ChatRetrieveResponseTest {
                 .build()
 
         assertThat(chatRetrieveResponse.id()).contains("id")
-        assertThat(chatRetrieveResponse.backgroundId()).contains("background_id")
-        assertThat(chatRetrieveResponse.backgroundUrl()).contains("https://example.com")
         assertThat(chatRetrieveResponse.contact())
             .contains(
                 ChatRetrieveResponse.Contact.builder()
@@ -85,8 +81,6 @@ internal class ChatRetrieveResponseTest {
         val chatRetrieveResponse =
             ChatRetrieveResponse.builder()
                 .id("id")
-                .backgroundId("background_id")
-                .backgroundUrl("https://example.com")
                 .contact(
                     ChatRetrieveResponse.Contact.builder()
                         .contactId("contact_id")

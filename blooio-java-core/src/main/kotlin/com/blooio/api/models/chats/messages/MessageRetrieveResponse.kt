@@ -8,7 +8,6 @@ import com.blooio.api.core.JsonField
 import com.blooio.api.core.JsonMissing
 import com.blooio.api.core.JsonValue
 import com.blooio.api.core.checkKnown
-import com.blooio.api.core.checkRequired
 import com.blooio.api.core.toImmutable
 import com.blooio.api.errors.BlooioInvalidDataException
 import com.fasterxml.jackson.annotation.JsonAnyGetter
@@ -32,7 +31,6 @@ private constructor(
     private val messageId: JsonField<String>,
     private val protocol: JsonField<Protocol>,
     private val reactions: JsonField<List<Reaction>>,
-    private val replyTo: JsonField<ReplyTo>,
     private val sender: JsonField<String>,
     private val status: JsonField<Status>,
     private val text: JsonField<String>,
@@ -60,7 +58,6 @@ private constructor(
         @JsonProperty("reactions")
         @ExcludeMissing
         reactions: JsonField<List<Reaction>> = JsonMissing.of(),
-        @JsonProperty("reply_to") @ExcludeMissing replyTo: JsonField<ReplyTo> = JsonMissing.of(),
         @JsonProperty("sender") @ExcludeMissing sender: JsonField<String> = JsonMissing.of(),
         @JsonProperty("status") @ExcludeMissing status: JsonField<Status> = JsonMissing.of(),
         @JsonProperty("text") @ExcludeMissing text: JsonField<String> = JsonMissing.of(),
@@ -78,7 +75,6 @@ private constructor(
         messageId,
         protocol,
         reactions,
-        replyTo,
         sender,
         status,
         text,
@@ -144,15 +140,6 @@ private constructor(
      *   server responded with an unexpected value).
      */
     fun reactions(): Optional<List<Reaction>> = reactions.getOptional("reactions")
-
-    /**
-     * Inline-reply parent reference. Identical shape on `message.received` webhooks and on every
-     * GET endpoint that returns a single message or a list of messages.
-     *
-     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-     *   server responded with an unexpected value).
-     */
-    fun replyTo(): Optional<ReplyTo> = replyTo.getOptional("reply_to")
 
     /**
      * Sender's phone number or email for inbound group messages. Null for outbound messages and 1-1
@@ -255,13 +242,6 @@ private constructor(
     fun _reactions(): JsonField<List<Reaction>> = reactions
 
     /**
-     * Returns the raw JSON value of [replyTo].
-     *
-     * Unlike [replyTo], this method doesn't throw if the JSON field has an unexpected type.
-     */
-    @JsonProperty("reply_to") @ExcludeMissing fun _replyTo(): JsonField<ReplyTo> = replyTo
-
-    /**
      * Returns the raw JSON value of [sender].
      *
      * Unlike [sender], this method doesn't throw if the JSON field has an unexpected type.
@@ -328,7 +308,6 @@ private constructor(
         private var messageId: JsonField<String> = JsonMissing.of()
         private var protocol: JsonField<Protocol> = JsonMissing.of()
         private var reactions: JsonField<MutableList<Reaction>>? = null
-        private var replyTo: JsonField<ReplyTo> = JsonMissing.of()
         private var sender: JsonField<String> = JsonMissing.of()
         private var status: JsonField<Status> = JsonMissing.of()
         private var text: JsonField<String> = JsonMissing.of()
@@ -347,7 +326,6 @@ private constructor(
             messageId = messageRetrieveResponse.messageId
             protocol = messageRetrieveResponse.protocol
             reactions = messageRetrieveResponse.reactions.map { it.toMutableList() }
-            replyTo = messageRetrieveResponse.replyTo
             sender = messageRetrieveResponse.sender
             status = messageRetrieveResponse.status
             text = messageRetrieveResponse.text
@@ -495,23 +473,6 @@ private constructor(
         }
 
         /**
-         * Inline-reply parent reference. Identical shape on `message.received` webhooks and on
-         * every GET endpoint that returns a single message or a list of messages.
-         */
-        fun replyTo(replyTo: ReplyTo?) = replyTo(JsonField.ofNullable(replyTo))
-
-        /** Alias for calling [Builder.replyTo] with `replyTo.orElse(null)`. */
-        fun replyTo(replyTo: Optional<ReplyTo>) = replyTo(replyTo.getOrNull())
-
-        /**
-         * Sets [Builder.replyTo] to an arbitrary JSON value.
-         *
-         * You should usually call [Builder.replyTo] with a well-typed [ReplyTo] value instead. This
-         * method is primarily for setting the field to an undocumented or not yet supported value.
-         */
-        fun replyTo(replyTo: JsonField<ReplyTo>) = apply { this.replyTo = replyTo }
-
-        /**
          * Sender's phone number or email for inbound group messages. Null for outbound messages and
          * 1-1 chats.
          */
@@ -622,7 +583,6 @@ private constructor(
                 messageId,
                 protocol,
                 (reactions ?: JsonMissing.of()).map { it.toImmutable() },
-                replyTo,
                 sender,
                 status,
                 text,
@@ -656,7 +616,6 @@ private constructor(
         messageId()
         protocol().ifPresent { it.validate() }
         reactions().ifPresent { it.forEach { it.validate() } }
-        replyTo().ifPresent { it.validate() }
         sender()
         status().ifPresent { it.validate() }
         text()
@@ -689,7 +648,6 @@ private constructor(
             (if (messageId.asKnown().isPresent) 1 else 0) +
             (protocol.asKnown().getOrNull()?.validity() ?: 0) +
             (reactions.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
-            (replyTo.asKnown().getOrNull()?.validity() ?: 0) +
             (if (sender.asKnown().isPresent) 1 else 0) +
             (status.asKnown().getOrNull()?.validity() ?: 0) +
             (if (text.asKnown().isPresent) 1 else 0) +
@@ -1204,276 +1162,6 @@ private constructor(
         override fun toString() = value.toString()
     }
 
-    /**
-     * Inline-reply parent reference. Identical shape on `message.received` webhooks and on every
-     * GET endpoint that returns a single message or a list of messages.
-     */
-    class ReplyTo
-    @JsonCreator(mode = JsonCreator.Mode.DISABLED)
-    private constructor(
-        private val guid: JsonField<String>,
-        private val messageId: JsonField<String>,
-        private val partIndex: JsonField<Long>,
-        private val additionalProperties: MutableMap<String, JsonValue>,
-    ) {
-
-        @JsonCreator
-        private constructor(
-            @JsonProperty("guid") @ExcludeMissing guid: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("message_id")
-            @ExcludeMissing
-            messageId: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("part_index")
-            @ExcludeMissing
-            partIndex: JsonField<Long> = JsonMissing.of(),
-        ) : this(guid, messageId, partIndex, mutableMapOf())
-
-        /**
-         * The raw iMessage GUID of the parent. Always populated on real inline replies; the
-         * on-device record-of-truth identifier that survives even when `message_id` cannot be
-         * resolved.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun guid(): Optional<String> = guid.getOptional("guid")
-
-        /**
-         * The Blooio `message_id` of the parent message. NULL when the parent isn't in our
-         * `messages` table (e.g., the original was sent from outside Blooio's pipeline).
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun messageId(): Optional<String> = messageId.getOptional("message_id")
-
-        /**
-         * Which part of the parent was replied to. 0 for the common single-part case.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
-         *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
-         */
-        fun partIndex(): Long = partIndex.getRequired("part_index")
-
-        /**
-         * Returns the raw JSON value of [guid].
-         *
-         * Unlike [guid], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("guid") @ExcludeMissing fun _guid(): JsonField<String> = guid
-
-        /**
-         * Returns the raw JSON value of [messageId].
-         *
-         * Unlike [messageId], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("message_id") @ExcludeMissing fun _messageId(): JsonField<String> = messageId
-
-        /**
-         * Returns the raw JSON value of [partIndex].
-         *
-         * Unlike [partIndex], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("part_index") @ExcludeMissing fun _partIndex(): JsonField<Long> = partIndex
-
-        @JsonAnySetter
-        private fun putAdditionalProperty(key: String, value: JsonValue) {
-            additionalProperties.put(key, value)
-        }
-
-        @JsonAnyGetter
-        @ExcludeMissing
-        fun _additionalProperties(): Map<String, JsonValue> =
-            Collections.unmodifiableMap(additionalProperties)
-
-        fun toBuilder() = Builder().from(this)
-
-        companion object {
-
-            /**
-             * Returns a mutable builder for constructing an instance of [ReplyTo].
-             *
-             * The following fields are required:
-             * ```java
-             * .guid()
-             * .messageId()
-             * .partIndex()
-             * ```
-             */
-            @JvmStatic fun builder() = Builder()
-        }
-
-        /** A builder for [ReplyTo]. */
-        class Builder internal constructor() {
-
-            private var guid: JsonField<String>? = null
-            private var messageId: JsonField<String>? = null
-            private var partIndex: JsonField<Long>? = null
-            private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
-
-            @JvmSynthetic
-            internal fun from(replyTo: ReplyTo) = apply {
-                guid = replyTo.guid
-                messageId = replyTo.messageId
-                partIndex = replyTo.partIndex
-                additionalProperties = replyTo.additionalProperties.toMutableMap()
-            }
-
-            /**
-             * The raw iMessage GUID of the parent. Always populated on real inline replies; the
-             * on-device record-of-truth identifier that survives even when `message_id` cannot be
-             * resolved.
-             */
-            fun guid(guid: String?) = guid(JsonField.ofNullable(guid))
-
-            /** Alias for calling [Builder.guid] with `guid.orElse(null)`. */
-            fun guid(guid: Optional<String>) = guid(guid.getOrNull())
-
-            /**
-             * Sets [Builder.guid] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.guid] with a well-typed [String] value instead. This
-             * method is primarily for setting the field to an undocumented or not yet supported
-             * value.
-             */
-            fun guid(guid: JsonField<String>) = apply { this.guid = guid }
-
-            /**
-             * The Blooio `message_id` of the parent message. NULL when the parent isn't in our
-             * `messages` table (e.g., the original was sent from outside Blooio's pipeline).
-             */
-            fun messageId(messageId: String?) = messageId(JsonField.ofNullable(messageId))
-
-            /** Alias for calling [Builder.messageId] with `messageId.orElse(null)`. */
-            fun messageId(messageId: Optional<String>) = messageId(messageId.getOrNull())
-
-            /**
-             * Sets [Builder.messageId] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.messageId] with a well-typed [String] value instead.
-             * This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun messageId(messageId: JsonField<String>) = apply { this.messageId = messageId }
-
-            /** Which part of the parent was replied to. 0 for the common single-part case. */
-            fun partIndex(partIndex: Long) = partIndex(JsonField.of(partIndex))
-
-            /**
-             * Sets [Builder.partIndex] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.partIndex] with a well-typed [Long] value instead.
-             * This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun partIndex(partIndex: JsonField<Long>) = apply { this.partIndex = partIndex }
-
-            fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
-                this.additionalProperties.clear()
-                putAllAdditionalProperties(additionalProperties)
-            }
-
-            fun putAdditionalProperty(key: String, value: JsonValue) = apply {
-                additionalProperties.put(key, value)
-            }
-
-            fun putAllAdditionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
-                this.additionalProperties.putAll(additionalProperties)
-            }
-
-            fun removeAdditionalProperty(key: String) = apply { additionalProperties.remove(key) }
-
-            fun removeAllAdditionalProperties(keys: Set<String>) = apply {
-                keys.forEach(::removeAdditionalProperty)
-            }
-
-            /**
-             * Returns an immutable instance of [ReplyTo].
-             *
-             * Further updates to this [Builder] will not mutate the returned instance.
-             *
-             * The following fields are required:
-             * ```java
-             * .guid()
-             * .messageId()
-             * .partIndex()
-             * ```
-             *
-             * @throws IllegalStateException if any required field is unset.
-             */
-            fun build(): ReplyTo =
-                ReplyTo(
-                    checkRequired("guid", guid),
-                    checkRequired("messageId", messageId),
-                    checkRequired("partIndex", partIndex),
-                    additionalProperties.toMutableMap(),
-                )
-        }
-
-        private var validated: Boolean = false
-
-        /**
-         * Validates that the types of all values in this object match their expected types
-         * recursively.
-         *
-         * This method is _not_ forwards compatible with new types from the API for existing fields.
-         *
-         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
-         *   expected type.
-         */
-        fun validate(): ReplyTo = apply {
-            if (validated) {
-                return@apply
-            }
-
-            guid()
-            messageId()
-            partIndex()
-            validated = true
-        }
-
-        fun isValid(): Boolean =
-            try {
-                validate()
-                true
-            } catch (e: BlooioInvalidDataException) {
-                false
-            }
-
-        /**
-         * Returns a score indicating how many valid values are contained in this object
-         * recursively.
-         *
-         * Used for best match union deserialization.
-         */
-        @JvmSynthetic
-        internal fun validity(): Int =
-            (if (guid.asKnown().isPresent) 1 else 0) +
-                (if (messageId.asKnown().isPresent) 1 else 0) +
-                (if (partIndex.asKnown().isPresent) 1 else 0)
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) {
-                return true
-            }
-
-            return other is ReplyTo &&
-                guid == other.guid &&
-                messageId == other.messageId &&
-                partIndex == other.partIndex &&
-                additionalProperties == other.additionalProperties
-        }
-
-        private val hashCode: Int by lazy {
-            Objects.hash(guid, messageId, partIndex, additionalProperties)
-        }
-
-        override fun hashCode(): Int = hashCode
-
-        override fun toString() =
-            "ReplyTo{guid=$guid, messageId=$messageId, partIndex=$partIndex, additionalProperties=$additionalProperties}"
-    }
-
     class Status @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
 
         /**
@@ -1653,7 +1341,6 @@ private constructor(
             messageId == other.messageId &&
             protocol == other.protocol &&
             reactions == other.reactions &&
-            replyTo == other.replyTo &&
             sender == other.sender &&
             status == other.status &&
             text == other.text &&
@@ -1673,7 +1360,6 @@ private constructor(
             messageId,
             protocol,
             reactions,
-            replyTo,
             sender,
             status,
             text,
@@ -1686,5 +1372,5 @@ private constructor(
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "MessageRetrieveResponse{attachments=$attachments, chatId=$chatId, contact=$contact, direction=$direction, error=$error, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, replyTo=$replyTo, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
+        "MessageRetrieveResponse{attachments=$attachments, chatId=$chatId, contact=$contact, direction=$direction, error=$error, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
 }

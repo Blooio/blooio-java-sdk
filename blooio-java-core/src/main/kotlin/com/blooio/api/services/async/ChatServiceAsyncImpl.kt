@@ -70,7 +70,7 @@ class ChatServiceAsyncImpl internal constructor(private val clientOptions: Clien
     /** Control typing indicators for conversations */
     override fun typing(): TypingServiceAsync = typing
 
-    /** Set, get, and remove conversation backgrounds */
+    /** View conversations and messages */
     override fun background(): BackgroundServiceAsync = background
 
     override fun retrieve(
@@ -142,7 +142,7 @@ class ChatServiceAsyncImpl internal constructor(private val clientOptions: Clien
         /** Control typing indicators for conversations */
         override fun typing(): TypingServiceAsync.WithRawResponse = typing
 
-        /** Set, get, and remove conversation backgrounds */
+        /** View conversations and messages */
         override fun background(): BackgroundServiceAsync.WithRawResponse = background
 
         private val retrieveHandler: Handler<ChatRetrieveResponse> =
