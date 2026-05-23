@@ -26,9 +26,18 @@ import kotlin.jvm.optionals.getOrNull
 /**
  * Set or update the background image for a conversation. Works for both 1-on-1 and group chats.
  *
- * The uploaded image is converted into a PosterKit-compatible archive and applied to the iMessage
- * conversation on the linked device. Supported formats: JPEG, PNG, GIF, WebP, HEIC/HEIF. Maximum
- * file size: 10 MB.
+ * The request body must be `multipart/form-data` with a single `background` field containing the
+ * **raw image file bytes** (not a URL or base64 string). Supported formats: JPEG, PNG, GIF, WebP,
+ * HEIC/HEIF. Maximum file size: 10 MB.
+ *
+ * **Example with curl** — note the `@` prefix that tells curl to read the file from disk:
+ * ```bash
+ * curl -X PUT "https://backend.blooio.com/v2/api/chats/%2B15551234567/background" \
+ *   -H "Authorization: Bearer YOUR_API_KEY" \
+ *   -F "background=@/path/to/image.jpg;type=image/jpeg"
+ * ```
+ *
+ * When the chat id is a phone number, percent-encode the leading `+` as `%2B` in the URL path.
  */
 class BackgroundSetParams
 private constructor(
@@ -41,7 +50,9 @@ private constructor(
     fun chatId(): Optional<String> = Optional.ofNullable(chatId)
 
     /**
-     * The image file to set as the chat background
+     * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file field
+     * in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with curl, or a
+     * `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or base64 string.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
      *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -108,7 +119,11 @@ private constructor(
          */
         fun body(body: Body) = apply { this.body = body.toBuilder() }
 
-        /** The image file to set as the chat background */
+        /**
+         * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+         * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with curl, or
+         * a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or base64 string.
+         */
         fun background(background: InputStream) = apply { body.background(background) }
 
         /**
@@ -122,10 +137,18 @@ private constructor(
             body.background(background)
         }
 
-        /** The image file to set as the chat background */
+        /**
+         * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+         * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with curl, or
+         * a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or base64 string.
+         */
         fun background(background: ByteArray) = apply { body.background(background) }
 
-        /** The image file to set as the chat background */
+        /**
+         * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+         * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with curl, or
+         * a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or base64 string.
+         */
         fun background(path: Path) = apply { body.background(path) }
 
         fun additionalBodyProperties(additionalBodyProperties: Map<String, JsonValue>) = apply {
@@ -288,7 +311,9 @@ private constructor(
     ) {
 
         /**
-         * The image file to set as the chat background
+         * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+         * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with curl, or
+         * a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or base64 string.
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
          *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -342,7 +367,12 @@ private constructor(
                 additionalProperties = body.additionalProperties.toMutableMap()
             }
 
-            /** The image file to set as the chat background */
+            /**
+             * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+             * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with
+             * curl, or a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or
+             * base64 string.
+             */
             fun background(background: InputStream) = background(MultipartField.of(background))
 
             /**
@@ -356,10 +386,20 @@ private constructor(
                 this.background = background
             }
 
-            /** The image file to set as the chat background */
+            /**
+             * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+             * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with
+             * curl, or a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or
+             * base64 string.
+             */
             fun background(background: ByteArray) = background(background.inputStream())
 
-            /** The image file to set as the chat background */
+            /**
+             * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a file
+             * field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"` with
+             * curl, or a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send a URL or
+             * base64 string.
+             */
             fun background(path: Path) =
                 background(
                     MultipartField.builder<InputStream>()

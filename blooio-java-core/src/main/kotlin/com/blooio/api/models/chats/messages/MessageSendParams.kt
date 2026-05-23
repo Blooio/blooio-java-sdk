@@ -46,17 +46,6 @@ import kotlin.jvm.optionals.getOrNull
  * lasers, fireworks, celebration). Effects are an iMessage-only feature — when the recipient is on
  * SMS/RCS the message is delivered without the animation. Effects are not supported in multipart
  * (`parts`) mode.
- *
- * **Threaded replies (iMessage inline reply):** set the optional `reply_to` field to send the
- * outgoing message as a reply to a specific earlier message. Two shapes are accepted: `{
- * "message_id": "msg_…" }` references a Blooio-minted message in the same chat (most common — the
- * message_id returned by an earlier send or surfaced on a `message.received` webhook), or `{
- * "guid": "…", "part_index": 0 }` references the raw iMessage GUID for the rare case where the
- * parent wasn't recorded by Blooio. The reply must target the same chat and the same from-number as
- * the new send, and the parent must be no older than 30 days (the iMessage on-device retention
- * horizon). Reply support is iMessage-only and is rejected on Twilio, dashboard-Twilio, and hybrid
- * send paths; it's also rejected on multi-message fan-outs (`text` array or per-part URL-balloon
- * batch). See the `400` responses for the full set of `reply_target_*` error codes.
  */
 class MessageSendParams
 private constructor(
@@ -150,18 +139,6 @@ private constructor(
     fun parts(): Optional<List<Part>> = body.parts()
 
     /**
-     * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id` (preferred —
-     * references a Blooio-minted message) or `guid` (raw iMessage GUID, useful for replying to
-     * messages received before the row was minted in Blooio). The new send is dispatched to Lava
-     * with the resolved `selectedMessageGuid` + `partIndex`, which iMessage renders as an inline
-     * reply on the recipient's device.
-     *
-     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-     *   server responded with an unexpected value).
-     */
-    fun replyTo(): Optional<ReplyTo> = body.replyTo()
-
-    /**
      * If true, the contact card (Name & Photo) will be shared with this message. The contact card
      * is piggybacked onto the outgoing message. Defaults to false.
      *
@@ -220,13 +197,6 @@ private constructor(
      * Unlike [parts], this method doesn't throw if the JSON field has an unexpected type.
      */
     fun _parts(): JsonField<List<Part>> = body._parts()
-
-    /**
-     * Returns the raw JSON value of [replyTo].
-     *
-     * Unlike [replyTo], this method doesn't throw if the JSON field has an unexpected type.
-     */
-    fun _replyTo(): JsonField<ReplyTo> = body._replyTo()
 
     /**
      * Returns the raw JSON value of [shareContact].
@@ -452,26 +422,6 @@ private constructor(
         fun addPart(part: Part) = apply { body.addPart(part) }
 
         /**
-         * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id`
-         * (preferred — references a Blooio-minted message) or `guid` (raw iMessage GUID, useful for
-         * replying to messages received before the row was minted in Blooio). The new send is
-         * dispatched to Lava with the resolved `selectedMessageGuid` + `partIndex`, which iMessage
-         * renders as an inline reply on the recipient's device.
-         */
-        fun replyTo(replyTo: ReplyTo?) = apply { body.replyTo(replyTo) }
-
-        /** Alias for calling [Builder.replyTo] with `replyTo.orElse(null)`. */
-        fun replyTo(replyTo: Optional<ReplyTo>) = replyTo(replyTo.getOrNull())
-
-        /**
-         * Sets [Builder.replyTo] to an arbitrary JSON value.
-         *
-         * You should usually call [Builder.replyTo] with a well-typed [ReplyTo] value instead. This
-         * method is primarily for setting the field to an undocumented or not yet supported value.
-         */
-        fun replyTo(replyTo: JsonField<ReplyTo>) = apply { body.replyTo(replyTo) }
-
-        /**
          * If true, the contact card (Name & Photo) will be shared with this message. The contact
          * card is piggybacked onto the outgoing message. Defaults to false.
          */
@@ -683,7 +633,6 @@ private constructor(
         private val fromNumber: JsonField<String>,
         private val linkPreview: JsonField<LinkPreview>,
         private val parts: JsonField<List<Part>>,
-        private val replyTo: JsonField<ReplyTo>,
         private val shareContact: JsonField<Boolean>,
         private val text: JsonField<Text>,
         private val useTypingIndicator: JsonField<Boolean>,
@@ -703,9 +652,6 @@ private constructor(
             @ExcludeMissing
             linkPreview: JsonField<LinkPreview> = JsonMissing.of(),
             @JsonProperty("parts") @ExcludeMissing parts: JsonField<List<Part>> = JsonMissing.of(),
-            @JsonProperty("reply_to")
-            @ExcludeMissing
-            replyTo: JsonField<ReplyTo> = JsonMissing.of(),
             @JsonProperty("share_contact")
             @ExcludeMissing
             shareContact: JsonField<Boolean> = JsonMissing.of(),
@@ -719,7 +665,6 @@ private constructor(
             fromNumber,
             linkPreview,
             parts,
-            replyTo,
             shareContact,
             text,
             useTypingIndicator,
@@ -805,18 +750,6 @@ private constructor(
         fun parts(): Optional<List<Part>> = parts.getOptional("parts")
 
         /**
-         * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id`
-         * (preferred — references a Blooio-minted message) or `guid` (raw iMessage GUID, useful for
-         * replying to messages received before the row was minted in Blooio). The new send is
-         * dispatched to Lava with the resolved `selectedMessageGuid` + `partIndex`, which iMessage
-         * renders as an inline reply on the recipient's device.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun replyTo(): Optional<ReplyTo> = replyTo.getOptional("reply_to")
-
-        /**
          * If true, the contact card (Name & Photo) will be shared with this message. The contact
          * card is piggybacked onto the outgoing message. Defaults to false.
          *
@@ -885,13 +818,6 @@ private constructor(
         @JsonProperty("parts") @ExcludeMissing fun _parts(): JsonField<List<Part>> = parts
 
         /**
-         * Returns the raw JSON value of [replyTo].
-         *
-         * Unlike [replyTo], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("reply_to") @ExcludeMissing fun _replyTo(): JsonField<ReplyTo> = replyTo
-
-        /**
          * Returns the raw JSON value of [shareContact].
          *
          * Unlike [shareContact], this method doesn't throw if the JSON field has an unexpected
@@ -944,7 +870,6 @@ private constructor(
             private var fromNumber: JsonField<String> = JsonMissing.of()
             private var linkPreview: JsonField<LinkPreview> = JsonMissing.of()
             private var parts: JsonField<MutableList<Part>>? = null
-            private var replyTo: JsonField<ReplyTo> = JsonMissing.of()
             private var shareContact: JsonField<Boolean> = JsonMissing.of()
             private var text: JsonField<Text> = JsonMissing.of()
             private var useTypingIndicator: JsonField<Boolean> = JsonMissing.of()
@@ -957,7 +882,6 @@ private constructor(
                 fromNumber = body.fromNumber
                 linkPreview = body.linkPreview
                 parts = body.parts.map { it.toMutableList() }
-                replyTo = body.replyTo
                 shareContact = body.shareContact
                 text = body.text
                 useTypingIndicator = body.useTypingIndicator
@@ -1122,27 +1046,6 @@ private constructor(
             }
 
             /**
-             * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id`
-             * (preferred — references a Blooio-minted message) or `guid` (raw iMessage GUID, useful
-             * for replying to messages received before the row was minted in Blooio). The new send
-             * is dispatched to Lava with the resolved `selectedMessageGuid` + `partIndex`, which
-             * iMessage renders as an inline reply on the recipient's device.
-             */
-            fun replyTo(replyTo: ReplyTo?) = replyTo(JsonField.ofNullable(replyTo))
-
-            /** Alias for calling [Builder.replyTo] with `replyTo.orElse(null)`. */
-            fun replyTo(replyTo: Optional<ReplyTo>) = replyTo(replyTo.getOrNull())
-
-            /**
-             * Sets [Builder.replyTo] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.replyTo] with a well-typed [ReplyTo] value instead.
-             * This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun replyTo(replyTo: JsonField<ReplyTo>) = apply { this.replyTo = replyTo }
-
-            /**
              * If true, the contact card (Name & Photo) will be shared with this message. The
              * contact card is piggybacked onto the outgoing message. Defaults to false.
              */
@@ -1226,7 +1129,6 @@ private constructor(
                     fromNumber,
                     linkPreview,
                     (parts ?: JsonMissing.of()).map { it.toImmutable() },
-                    replyTo,
                     shareContact,
                     text,
                     useTypingIndicator,
@@ -1255,7 +1157,6 @@ private constructor(
             fromNumber()
             linkPreview().ifPresent { it.validate() }
             parts().ifPresent { it.forEach { it.validate() } }
-            replyTo().ifPresent { it.validate() }
             shareContact()
             text().ifPresent { it.validate() }
             useTypingIndicator()
@@ -1283,7 +1184,6 @@ private constructor(
                 (if (fromNumber.asKnown().isPresent) 1 else 0) +
                 (linkPreview.asKnown().getOrNull()?.validity() ?: 0) +
                 (parts.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
-                (replyTo.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (shareContact.asKnown().isPresent) 1 else 0) +
                 (text.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (useTypingIndicator.asKnown().isPresent) 1 else 0)
@@ -1299,7 +1199,6 @@ private constructor(
                 fromNumber == other.fromNumber &&
                 linkPreview == other.linkPreview &&
                 parts == other.parts &&
-                replyTo == other.replyTo &&
                 shareContact == other.shareContact &&
                 text == other.text &&
                 useTypingIndicator == other.useTypingIndicator &&
@@ -1313,7 +1212,6 @@ private constructor(
                 fromNumber,
                 linkPreview,
                 parts,
-                replyTo,
                 shareContact,
                 text,
                 useTypingIndicator,
@@ -1324,7 +1222,7 @@ private constructor(
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Body{attachments=$attachments, effect=$effect, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, replyTo=$replyTo, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
+            "Body{attachments=$attachments, effect=$effect, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
     }
 
     /** URL to the attachment */
@@ -2299,256 +2197,6 @@ private constructor(
 
         override fun toString() =
             "Part{linkPreview=$linkPreview, mention=$mention, name=$name, text=$text, url=$url, additionalProperties=$additionalProperties}"
-    }
-
-    /**
-     * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id` (preferred —
-     * references a Blooio-minted message) or `guid` (raw iMessage GUID, useful for replying to
-     * messages received before the row was minted in Blooio). The new send is dispatched to Lava
-     * with the resolved `selectedMessageGuid` + `partIndex`, which iMessage renders as an inline
-     * reply on the recipient's device.
-     */
-    class ReplyTo
-    @JsonCreator(mode = JsonCreator.Mode.DISABLED)
-    private constructor(
-        private val guid: JsonField<String>,
-        private val messageId: JsonField<String>,
-        private val partIndex: JsonField<Long>,
-        private val additionalProperties: MutableMap<String, JsonValue>,
-    ) {
-
-        @JsonCreator
-        private constructor(
-            @JsonProperty("guid") @ExcludeMissing guid: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("message_id")
-            @ExcludeMissing
-            messageId: JsonField<String> = JsonMissing.of(),
-            @JsonProperty("part_index")
-            @ExcludeMissing
-            partIndex: JsonField<Long> = JsonMissing.of(),
-        ) : this(guid, messageId, partIndex, mutableMapOf())
-
-        /**
-         * Raw iMessage GUID of the parent. When supplied without a `message_id`, Blooio attempts to
-         * look up the parent via `provider_message_guid`; if the parent isn't in our table the send
-         * still proceeds (Lava will thread on the device when possible) and the response carries
-         * `parent_unresolved: true`.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun guid(): Optional<String> = guid.getOptional("guid")
-
-        /**
-         * Blooio `message_id` of the parent. Must belong to the same chat, same from-number, and be
-         * no older than 30 days. Returns 404 `reply_target_not_found` if unknown.
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun messageId(): Optional<String> = messageId.getOptional("message_id")
-
-        /**
-         * Which part of the parent to reply to. Defaults to 0 (covers the 99% case of replying to a
-         * single-part text message).
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun partIndex(): Optional<Long> = partIndex.getOptional("part_index")
-
-        /**
-         * Returns the raw JSON value of [guid].
-         *
-         * Unlike [guid], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("guid") @ExcludeMissing fun _guid(): JsonField<String> = guid
-
-        /**
-         * Returns the raw JSON value of [messageId].
-         *
-         * Unlike [messageId], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("message_id") @ExcludeMissing fun _messageId(): JsonField<String> = messageId
-
-        /**
-         * Returns the raw JSON value of [partIndex].
-         *
-         * Unlike [partIndex], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("part_index") @ExcludeMissing fun _partIndex(): JsonField<Long> = partIndex
-
-        @JsonAnySetter
-        private fun putAdditionalProperty(key: String, value: JsonValue) {
-            additionalProperties.put(key, value)
-        }
-
-        @JsonAnyGetter
-        @ExcludeMissing
-        fun _additionalProperties(): Map<String, JsonValue> =
-            Collections.unmodifiableMap(additionalProperties)
-
-        fun toBuilder() = Builder().from(this)
-
-        companion object {
-
-            /** Returns a mutable builder for constructing an instance of [ReplyTo]. */
-            @JvmStatic fun builder() = Builder()
-        }
-
-        /** A builder for [ReplyTo]. */
-        class Builder internal constructor() {
-
-            private var guid: JsonField<String> = JsonMissing.of()
-            private var messageId: JsonField<String> = JsonMissing.of()
-            private var partIndex: JsonField<Long> = JsonMissing.of()
-            private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
-
-            @JvmSynthetic
-            internal fun from(replyTo: ReplyTo) = apply {
-                guid = replyTo.guid
-                messageId = replyTo.messageId
-                partIndex = replyTo.partIndex
-                additionalProperties = replyTo.additionalProperties.toMutableMap()
-            }
-
-            /**
-             * Raw iMessage GUID of the parent. When supplied without a `message_id`, Blooio
-             * attempts to look up the parent via `provider_message_guid`; if the parent isn't in
-             * our table the send still proceeds (Lava will thread on the device when possible) and
-             * the response carries `parent_unresolved: true`.
-             */
-            fun guid(guid: String) = guid(JsonField.of(guid))
-
-            /**
-             * Sets [Builder.guid] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.guid] with a well-typed [String] value instead. This
-             * method is primarily for setting the field to an undocumented or not yet supported
-             * value.
-             */
-            fun guid(guid: JsonField<String>) = apply { this.guid = guid }
-
-            /**
-             * Blooio `message_id` of the parent. Must belong to the same chat, same from-number,
-             * and be no older than 30 days. Returns 404 `reply_target_not_found` if unknown.
-             */
-            fun messageId(messageId: String) = messageId(JsonField.of(messageId))
-
-            /**
-             * Sets [Builder.messageId] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.messageId] with a well-typed [String] value instead.
-             * This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun messageId(messageId: JsonField<String>) = apply { this.messageId = messageId }
-
-            /**
-             * Which part of the parent to reply to. Defaults to 0 (covers the 99% case of replying
-             * to a single-part text message).
-             */
-            fun partIndex(partIndex: Long) = partIndex(JsonField.of(partIndex))
-
-            /**
-             * Sets [Builder.partIndex] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.partIndex] with a well-typed [Long] value instead.
-             * This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun partIndex(partIndex: JsonField<Long>) = apply { this.partIndex = partIndex }
-
-            fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
-                this.additionalProperties.clear()
-                putAllAdditionalProperties(additionalProperties)
-            }
-
-            fun putAdditionalProperty(key: String, value: JsonValue) = apply {
-                additionalProperties.put(key, value)
-            }
-
-            fun putAllAdditionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
-                this.additionalProperties.putAll(additionalProperties)
-            }
-
-            fun removeAdditionalProperty(key: String) = apply { additionalProperties.remove(key) }
-
-            fun removeAllAdditionalProperties(keys: Set<String>) = apply {
-                keys.forEach(::removeAdditionalProperty)
-            }
-
-            /**
-             * Returns an immutable instance of [ReplyTo].
-             *
-             * Further updates to this [Builder] will not mutate the returned instance.
-             */
-            fun build(): ReplyTo =
-                ReplyTo(guid, messageId, partIndex, additionalProperties.toMutableMap())
-        }
-
-        private var validated: Boolean = false
-
-        /**
-         * Validates that the types of all values in this object match their expected types
-         * recursively.
-         *
-         * This method is _not_ forwards compatible with new types from the API for existing fields.
-         *
-         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
-         *   expected type.
-         */
-        fun validate(): ReplyTo = apply {
-            if (validated) {
-                return@apply
-            }
-
-            guid()
-            messageId()
-            partIndex()
-            validated = true
-        }
-
-        fun isValid(): Boolean =
-            try {
-                validate()
-                true
-            } catch (e: BlooioInvalidDataException) {
-                false
-            }
-
-        /**
-         * Returns a score indicating how many valid values are contained in this object
-         * recursively.
-         *
-         * Used for best match union deserialization.
-         */
-        @JvmSynthetic
-        internal fun validity(): Int =
-            (if (guid.asKnown().isPresent) 1 else 0) +
-                (if (messageId.asKnown().isPresent) 1 else 0) +
-                (if (partIndex.asKnown().isPresent) 1 else 0)
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) {
-                return true
-            }
-
-            return other is ReplyTo &&
-                guid == other.guid &&
-                messageId == other.messageId &&
-                partIndex == other.partIndex &&
-                additionalProperties == other.additionalProperties
-        }
-
-        private val hashCode: Int by lazy {
-            Objects.hash(guid, messageId, partIndex, additionalProperties)
-        }
-
-        override fun hashCode(): Int = hashCode
-
-        override fun toString() =
-            "ReplyTo{guid=$guid, messageId=$messageId, partIndex=$partIndex, additionalProperties=$additionalProperties}"
     }
 
     /**

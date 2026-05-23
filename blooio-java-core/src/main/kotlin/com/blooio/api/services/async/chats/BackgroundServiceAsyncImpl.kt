@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
-/** Set, get, and remove conversation backgrounds */
+/** View conversations and messages */
 class BackgroundServiceAsyncImpl internal constructor(private val clientOptions: ClientOptions) :
     BackgroundServiceAsync {
 

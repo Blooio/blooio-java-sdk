@@ -46,7 +46,7 @@ interface ChatService {
     /** Control typing indicators for conversations */
     fun typing(): TypingService
 
-    /** Set, get, and remove conversation backgrounds */
+    /** View conversations and messages */
     fun background(): BackgroundService
 
     /** Get details for a specific conversation. */
@@ -189,7 +189,7 @@ interface ChatService {
         /** Control typing indicators for conversations */
         fun typing(): TypingService.WithRawResponse
 
-        /** Set, get, and remove conversation backgrounds */
+        /** View conversations and messages */
         fun background(): BackgroundService.WithRawResponse
 
         /**
