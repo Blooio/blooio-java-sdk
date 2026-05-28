@@ -124,8 +124,6 @@ interface MessageServiceAsync {
      * The messageId can be an explicit message ID (e.g., msg_xxx) or a relative index (-1 for last
      * message, -2 for second-to-last, etc.). When using relative indices, you can optionally filter
      * by message direction (inbound/outbound only).
-     *
-     * Emoji reactions require macOS 14 (Sonoma) or later on the device.
      */
     fun react(
         messageId: String,
