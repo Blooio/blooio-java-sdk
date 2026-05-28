@@ -28,8 +28,6 @@ import kotlin.jvm.optionals.getOrNull
  * The messageId can be an explicit message ID (e.g., msg_xxx) or a relative index (-1 for last
  * message, -2 for second-to-last, etc.). When using relative indices, you can optionally filter by
  * message direction (inbound/outbound only).
- *
- * Emoji reactions require macOS 14 (Sonoma) or later on the device.
  */
 class MessageReactParams
 private constructor(
@@ -51,7 +49,6 @@ private constructor(
      * `-laugh`, `+emphasize`, `-emphasize`, `+question`, `-question`
      *
      * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`, `+👍`, `-🔥`).
-     * Emoji reactions require macOS 14 (Sonoma) or later on the device.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
      *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -146,7 +143,7 @@ private constructor(
          * `+laugh`, `-laugh`, `+emphasize`, `-emphasize`, `+question`, `-question`
          *
          * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`, `+👍`,
-         * `-🔥`). Emoji reactions require macOS 14 (Sonoma) or later on the device.
+         * `-🔥`).
          */
         fun reaction(reaction: String) = apply { body.reaction(reaction) }
 
@@ -350,7 +347,7 @@ private constructor(
          * `+laugh`, `-laugh`, `+emphasize`, `-emphasize`, `+question`, `-question`
          *
          * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`, `+👍`,
-         * `-🔥`). Emoji reactions require macOS 14 (Sonoma) or later on the device.
+         * `-🔥`).
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
          *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -427,7 +424,7 @@ private constructor(
              * `+laugh`, `-laugh`, `+emphasize`, `-emphasize`, `+question`, `-question`
              *
              * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`, `+👍`,
-             * `-🔥`). Emoji reactions require macOS 14 (Sonoma) or later on the device.
+             * `-🔥`).
              */
             fun reaction(reaction: String) = reaction(JsonField.of(reaction))
 
