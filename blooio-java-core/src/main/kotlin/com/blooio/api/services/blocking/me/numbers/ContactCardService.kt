@@ -67,6 +67,10 @@ interface ContactCardService {
     /**
      * Update the personal contact card (Name & Photo) for the specified phone number. All fields
      * are optional — only provided fields are updated.
+     *
+     * ⚠️ **Plan requirement:** Setting the `first_name`, `last_name`, or `avatar` is only available
+     * on **Dedicated Commercial** and **Dedicated Enterprise** plans. Numbers on other plans
+     * receive a `403`.
      */
     fun update(number: String): ContactCardUpdateResponse =
         update(number, ContactCardUpdateParams.none())

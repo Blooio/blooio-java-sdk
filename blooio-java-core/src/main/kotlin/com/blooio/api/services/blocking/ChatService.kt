@@ -132,6 +132,9 @@ interface ChatService {
      * Stage the contact card (Name & Photo) for sharing in a chat. The contact card will be
      * piggybacked onto the next outgoing message (text or attachment) sent to this chat. This is
      * idempotent — calling it multiple times is harmless.
+     *
+     * ⚠️ **Plan requirement:** Contact card sharing is only available on **Dedicated Commercial**
+     * and **Dedicated Enterprise** plans. Numbers on other plans receive a `403`.
      */
     fun shareContactCard(chatId: String): ChatShareContactCardResponse =
         shareContactCard(chatId, ChatShareContactCardParams.none())

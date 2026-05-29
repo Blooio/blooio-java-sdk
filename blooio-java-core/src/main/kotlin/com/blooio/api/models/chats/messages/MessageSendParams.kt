@@ -140,7 +140,8 @@ private constructor(
 
     /**
      * If true, the contact card (Name & Photo) will be shared with this message. The contact card
-     * is piggybacked onto the outgoing message. Defaults to false.
+     * is piggybacked onto the outgoing message. Defaults to false. ⚠️ Only available on **Dedicated
+     * Commercial** and **Dedicated Enterprise** plans — other plans receive a `403`.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -423,7 +424,9 @@ private constructor(
 
         /**
          * If true, the contact card (Name & Photo) will be shared with this message. The contact
-         * card is piggybacked onto the outgoing message. Defaults to false.
+         * card is piggybacked onto the outgoing message. Defaults to false. ⚠️ Only available on
+         * **Dedicated Commercial** and **Dedicated Enterprise** plans — other plans receive a
+         * `403`.
          */
         fun shareContact(shareContact: Boolean) = apply { body.shareContact(shareContact) }
 
@@ -751,7 +754,9 @@ private constructor(
 
         /**
          * If true, the contact card (Name & Photo) will be shared with this message. The contact
-         * card is piggybacked onto the outgoing message. Defaults to false.
+         * card is piggybacked onto the outgoing message. Defaults to false. ⚠️ Only available on
+         * **Dedicated Commercial** and **Dedicated Enterprise** plans — other plans receive a
+         * `403`.
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
@@ -1047,7 +1052,9 @@ private constructor(
 
             /**
              * If true, the contact card (Name & Photo) will be shared with this message. The
-             * contact card is piggybacked onto the outgoing message. Defaults to false.
+             * contact card is piggybacked onto the outgoing message. Defaults to false. ⚠️ Only
+             * available on **Dedicated Commercial** and **Dedicated Enterprise** plans — other
+             * plans receive a `403`.
              */
             fun shareContact(shareContact: Boolean) = shareContact(JsonField.of(shareContact))
 
