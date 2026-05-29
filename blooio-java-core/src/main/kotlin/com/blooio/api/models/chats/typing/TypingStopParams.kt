@@ -12,7 +12,8 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 /**
- * Stop the typing indicator for a chat.
+ * Stop the typing indicator for a chat. Works for both 1:1 chats (pass a phone number or email as
+ * `chatId`) and group chats (pass the group ID, e.g. `grp_...`).
  *
  * **RCS limitation:** typing indicators are only delivered for iMessage chats — the RCS protocol
  * does not carry composing state. Calls against RCS-routed chats return 200 with a `warning` field
