@@ -19,6 +19,7 @@ internal class MessageSendResponseTest {
                 .groupId("group_id")
                 .messageId("message_id")
                 .addMessageId("string")
+                .parentUnresolved(true)
                 .addParticipant("string")
                 .status(MessageSendResponse.Status.QUEUED)
                 .build()
@@ -28,6 +29,7 @@ internal class MessageSendResponseTest {
         assertThat(messageSendResponse.groupId()).contains("group_id")
         assertThat(messageSendResponse.messageId()).contains("message_id")
         assertThat(messageSendResponse.messageIds().getOrNull()).containsExactly("string")
+        assertThat(messageSendResponse.parentUnresolved()).contains(true)
         assertThat(messageSendResponse.participants().getOrNull()).containsExactly("string")
         assertThat(messageSendResponse.status()).contains(MessageSendResponse.Status.QUEUED)
     }
@@ -42,6 +44,7 @@ internal class MessageSendResponseTest {
                 .groupId("group_id")
                 .messageId("message_id")
                 .addMessageId("string")
+                .parentUnresolved(true)
                 .addParticipant("string")
                 .status(MessageSendResponse.Status.QUEUED)
                 .build()

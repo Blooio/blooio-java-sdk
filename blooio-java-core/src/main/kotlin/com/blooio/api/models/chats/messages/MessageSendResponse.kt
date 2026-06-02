@@ -28,6 +28,7 @@ private constructor(
     private val groupId: JsonField<String>,
     private val messageId: JsonField<String>,
     private val messageIds: JsonField<List<String>>,
+    private val parentUnresolved: JsonField<Boolean>,
     private val participants: JsonField<List<String>>,
     private val status: JsonField<Status>,
     private val additionalProperties: MutableMap<String, JsonValue>,
@@ -44,6 +45,9 @@ private constructor(
         @JsonProperty("message_ids")
         @ExcludeMissing
         messageIds: JsonField<List<String>> = JsonMissing.of(),
+        @JsonProperty("parent_unresolved")
+        @ExcludeMissing
+        parentUnresolved: JsonField<Boolean> = JsonMissing.of(),
         @JsonProperty("participants")
         @ExcludeMissing
         participants: JsonField<List<String>> = JsonMissing.of(),
@@ -54,6 +58,7 @@ private constructor(
         groupId,
         messageId,
         messageIds,
+        parentUnresolved,
         participants,
         status,
         mutableMapOf(),
@@ -99,6 +104,16 @@ private constructor(
      *   server responded with an unexpected value).
      */
     fun messageIds(): Optional<List<String>> = messageIds.getOptional("message_ids")
+
+    /**
+     * Present (and `true`) only when `reply_to.guid` was supplied without a `message_id` and the
+     * GUID didn't map to any Blooio-minted row. The send still proceeds and the device may still
+     * thread it; this flag signals that Blooio couldn't link the new message to a known parent.
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun parentUnresolved(): Optional<Boolean> = parentUnresolved.getOptional("parent_unresolved")
 
     /**
      * List of participants (present for multi-recipient)
@@ -156,6 +171,16 @@ private constructor(
     fun _messageIds(): JsonField<List<String>> = messageIds
 
     /**
+     * Returns the raw JSON value of [parentUnresolved].
+     *
+     * Unlike [parentUnresolved], this method doesn't throw if the JSON field has an unexpected
+     * type.
+     */
+    @JsonProperty("parent_unresolved")
+    @ExcludeMissing
+    fun _parentUnresolved(): JsonField<Boolean> = parentUnresolved
+
+    /**
      * Returns the raw JSON value of [participants].
      *
      * Unlike [participants], this method doesn't throw if the JSON field has an unexpected type.
@@ -197,6 +222,7 @@ private constructor(
         private var groupId: JsonField<String> = JsonMissing.of()
         private var messageId: JsonField<String> = JsonMissing.of()
         private var messageIds: JsonField<MutableList<String>>? = null
+        private var parentUnresolved: JsonField<Boolean> = JsonMissing.of()
         private var participants: JsonField<MutableList<String>>? = null
         private var status: JsonField<Status> = JsonMissing.of()
         private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
@@ -208,6 +234,7 @@ private constructor(
             groupId = messageSendResponse.groupId
             messageId = messageSendResponse.messageId
             messageIds = messageSendResponse.messageIds.map { it.toMutableList() }
+            parentUnresolved = messageSendResponse.parentUnresolved
             participants = messageSendResponse.participants.map { it.toMutableList() }
             status = messageSendResponse.status
             additionalProperties = messageSendResponse.additionalProperties.toMutableMap()
@@ -290,6 +317,26 @@ private constructor(
                 }
         }
 
+        /**
+         * Present (and `true`) only when `reply_to.guid` was supplied without a `message_id` and
+         * the GUID didn't map to any Blooio-minted row. The send still proceeds and the device may
+         * still thread it; this flag signals that Blooio couldn't link the new message to a known
+         * parent.
+         */
+        fun parentUnresolved(parentUnresolved: Boolean) =
+            parentUnresolved(JsonField.of(parentUnresolved))
+
+        /**
+         * Sets [Builder.parentUnresolved] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.parentUnresolved] with a well-typed [Boolean] value
+         * instead. This method is primarily for setting the field to an undocumented or not yet
+         * supported value.
+         */
+        fun parentUnresolved(parentUnresolved: JsonField<Boolean>) = apply {
+            this.parentUnresolved = parentUnresolved
+        }
+
         /** List of participants (present for multi-recipient) */
         fun participants(participants: List<String>) = participants(JsonField.of(participants))
 
@@ -358,6 +405,7 @@ private constructor(
                 groupId,
                 messageId,
                 (messageIds ?: JsonMissing.of()).map { it.toImmutable() },
+                parentUnresolved,
                 (participants ?: JsonMissing.of()).map { it.toImmutable() },
                 status,
                 additionalProperties.toMutableMap(),
@@ -384,6 +432,7 @@ private constructor(
         groupId()
         messageId()
         messageIds()
+        parentUnresolved()
         participants()
         status().ifPresent { it.validate() }
         validated = true
@@ -409,6 +458,7 @@ private constructor(
             (if (groupId.asKnown().isPresent) 1 else 0) +
             (if (messageId.asKnown().isPresent) 1 else 0) +
             (messageIds.asKnown().getOrNull()?.size ?: 0) +
+            (if (parentUnresolved.asKnown().isPresent) 1 else 0) +
             (participants.asKnown().getOrNull()?.size ?: 0) +
             (status.asKnown().getOrNull()?.validity() ?: 0)
 
@@ -558,6 +608,7 @@ private constructor(
             groupId == other.groupId &&
             messageId == other.messageId &&
             messageIds == other.messageIds &&
+            parentUnresolved == other.parentUnresolved &&
             participants == other.participants &&
             status == other.status &&
             additionalProperties == other.additionalProperties
@@ -570,6 +621,7 @@ private constructor(
             groupId,
             messageId,
             messageIds,
+            parentUnresolved,
             participants,
             status,
             additionalProperties,
@@ -579,5 +631,5 @@ private constructor(
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "MessageSendResponse{count=$count, groupCreated=$groupCreated, groupId=$groupId, messageId=$messageId, messageIds=$messageIds, participants=$participants, status=$status, additionalProperties=$additionalProperties}"
+        "MessageSendResponse{count=$count, groupCreated=$groupCreated, groupId=$groupId, messageId=$messageId, messageIds=$messageIds, parentUnresolved=$parentUnresolved, participants=$participants, status=$status, additionalProperties=$additionalProperties}"
 }

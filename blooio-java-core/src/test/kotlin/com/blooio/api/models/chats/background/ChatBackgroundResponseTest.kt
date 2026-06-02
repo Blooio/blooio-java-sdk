@@ -14,6 +14,7 @@ internal class ChatBackgroundResponseTest {
         val chatBackgroundResponse =
             ChatBackgroundResponse.builder()
                 .backgroundId("background_id")
+                .backgroundUrl("https://example.com")
                 .backgroundVersion(0L)
                 .changed(true)
                 .chatId("chat_id")
@@ -21,6 +22,7 @@ internal class ChatBackgroundResponseTest {
                 .build()
 
         assertThat(chatBackgroundResponse.backgroundId()).contains("background_id")
+        assertThat(chatBackgroundResponse.backgroundUrl()).contains("https://example.com")
         assertThat(chatBackgroundResponse.backgroundVersion()).contains(0L)
         assertThat(chatBackgroundResponse.changed()).contains(true)
         assertThat(chatBackgroundResponse.chatId()).contains("chat_id")
@@ -33,6 +35,7 @@ internal class ChatBackgroundResponseTest {
         val chatBackgroundResponse =
             ChatBackgroundResponse.builder()
                 .backgroundId("background_id")
+                .backgroundUrl("https://example.com")
                 .backgroundVersion(0L)
                 .changed(true)
                 .chatId("chat_id")

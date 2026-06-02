@@ -145,6 +145,18 @@ interface MessageService {
      * confetti, love, lasers, fireworks, celebration). Effects are an iMessage-only feature — when
      * the recipient is on SMS/RCS the message is delivered without the animation. Effects are not
      * supported in multipart (`parts`) mode.
+     *
+     * **Threaded replies (iMessage inline reply):** set the optional `reply_to` field to send the
+     * outgoing message as a reply to a specific earlier message. Two shapes are accepted: `{
+     * "message_id": "msg_…" }` references a Blooio-minted message in the same chat (most common —
+     * the message_id returned by an earlier send or surfaced on a `message.received` webhook), or
+     * `{ "guid": "…", "part_index": 0 }` references the raw iMessage GUID for the rare case where
+     * the parent wasn't recorded by Blooio. The reply must target the same chat and the same
+     * from-number as the new send, and the parent must be no older than 30 days (the iMessage
+     * on-device retention horizon). Reply support is iMessage-only and is rejected on Twilio,
+     * dashboard-Twilio, and hybrid send paths; it's also rejected on multi-message fan-outs (`text`
+     * array or per-part URL-balloon batch). See the `400` responses for the full set of
+     * `reply_target_*` error codes.
      */
     fun send(chatId: String): MessageSendResponse = send(chatId, MessageSendParams.none())
 
