@@ -32,10 +32,16 @@ private constructor(
     /** Filter by message direction */
     fun direction(): Optional<Direction> = Optional.ofNullable(direction)
 
-    /** Maximum number of items to return (1-200) */
+    /**
+     * Maximum number of items to return in a single response. Must be between 1 and 200; defaults
+     * to 50. Use together with `offset` to page through large result sets.
+     */
     fun limit(): Optional<Long> = Optional.ofNullable(limit)
 
-    /** Number of items to skip */
+    /**
+     * Number of items to skip before returning results. Combine with `limit` for page-based
+     * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+     */
     fun offset(): Optional<Long> = Optional.ofNullable(offset)
 
     /** Only messages sent after this timestamp (ms) */
@@ -100,7 +106,10 @@ private constructor(
         /** Alias for calling [Builder.direction] with `direction.orElse(null)`. */
         fun direction(direction: Optional<Direction>) = direction(direction.getOrNull())
 
-        /** Maximum number of items to return (1-200) */
+        /**
+         * Maximum number of items to return in a single response. Must be between 1 and 200;
+         * defaults to 50. Use together with `offset` to page through large result sets.
+         */
         fun limit(limit: Long?) = apply { this.limit = limit }
 
         /**
@@ -113,7 +122,10 @@ private constructor(
         /** Alias for calling [Builder.limit] with `limit.orElse(null)`. */
         fun limit(limit: Optional<Long>) = limit(limit.getOrNull())
 
-        /** Number of items to skip */
+        /**
+         * Number of items to skip before returning results. Combine with `limit` for page-based
+         * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+         */
         fun offset(offset: Long?) = apply { this.offset = offset }
 
         /**
