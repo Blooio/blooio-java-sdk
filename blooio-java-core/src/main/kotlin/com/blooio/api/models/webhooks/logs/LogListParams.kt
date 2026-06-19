@@ -29,7 +29,10 @@ private constructor(
 
     fun webhookId(): Optional<String> = Optional.ofNullable(webhookId)
 
-    /** Maximum number of items to return (1-200) */
+    /**
+     * Maximum number of items to return in a single response. Must be between 1 and 200; defaults
+     * to 50. Use together with `offset` to page through large result sets.
+     */
     fun limit(): Optional<Long> = Optional.ofNullable(limit)
 
     /** Maximum HTTP status code */
@@ -38,7 +41,10 @@ private constructor(
     /** Minimum HTTP status code */
     fun minStatus(): Optional<Long> = Optional.ofNullable(minStatus)
 
-    /** Number of items to skip */
+    /**
+     * Number of items to skip before returning results. Combine with `limit` for page-based
+     * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+     */
     fun offset(): Optional<Long> = Optional.ofNullable(offset)
 
     /** Sort order by attempted time */
@@ -94,7 +100,10 @@ private constructor(
         /** Alias for calling [Builder.webhookId] with `webhookId.orElse(null)`. */
         fun webhookId(webhookId: Optional<String>) = webhookId(webhookId.getOrNull())
 
-        /** Maximum number of items to return (1-200) */
+        /**
+         * Maximum number of items to return in a single response. Must be between 1 and 200;
+         * defaults to 50. Use together with `offset` to page through large result sets.
+         */
         fun limit(limit: Long?) = apply { this.limit = limit }
 
         /**
@@ -133,7 +142,10 @@ private constructor(
         /** Alias for calling [Builder.minStatus] with `minStatus.orElse(null)`. */
         fun minStatus(minStatus: Optional<Long>) = minStatus(minStatus.getOrNull())
 
-        /** Number of items to skip */
+        /**
+         * Number of items to skip before returning results. Combine with `limit` for page-based
+         * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+         */
         fun offset(offset: Long?) = apply { this.offset = offset }
 
         /**

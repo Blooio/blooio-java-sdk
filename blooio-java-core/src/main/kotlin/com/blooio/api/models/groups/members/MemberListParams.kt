@@ -21,10 +21,16 @@ private constructor(
 
     fun groupId(): Optional<String> = Optional.ofNullable(groupId)
 
-    /** Maximum number of items to return (1-200) */
+    /**
+     * Maximum number of items to return in a single response. Must be between 1 and 200; defaults
+     * to 50. Use together with `offset` to page through large result sets.
+     */
     fun limit(): Optional<Long> = Optional.ofNullable(limit)
 
-    /** Number of items to skip */
+    /**
+     * Number of items to skip before returning results. Combine with `limit` for page-based
+     * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+     */
     fun offset(): Optional<Long> = Optional.ofNullable(offset)
 
     /** Additional headers to send with the request. */
@@ -66,7 +72,10 @@ private constructor(
         /** Alias for calling [Builder.groupId] with `groupId.orElse(null)`. */
         fun groupId(groupId: Optional<String>) = groupId(groupId.getOrNull())
 
-        /** Maximum number of items to return (1-200) */
+        /**
+         * Maximum number of items to return in a single response. Must be between 1 and 200;
+         * defaults to 50. Use together with `offset` to page through large result sets.
+         */
         fun limit(limit: Long?) = apply { this.limit = limit }
 
         /**
@@ -79,7 +88,10 @@ private constructor(
         /** Alias for calling [Builder.limit] with `limit.orElse(null)`. */
         fun limit(limit: Optional<Long>) = limit(limit.getOrNull())
 
-        /** Number of items to skip */
+        /**
+         * Number of items to skip before returning results. Combine with `limit` for page-based
+         * pagination (e.g. `offset=50&limit=50` returns the second page). Defaults to 0.
+         */
         fun offset(offset: Long?) = apply { this.offset = offset }
 
         /**
