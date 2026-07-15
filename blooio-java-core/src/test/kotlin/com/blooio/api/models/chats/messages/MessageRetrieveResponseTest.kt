@@ -28,7 +28,7 @@ internal class MessageRetrieveResponseTest {
                 .error("error")
                 .internalId("internal_id")
                 .messageId("message_id")
-                .protocol(MessageRetrieveResponse.Protocol.IMESSAGE)
+                .protocol(MessageRetrieveResponse.Protocol.PENDING)
                 .addReaction(
                     Reaction.builder()
                         .isAdded(true)
@@ -68,7 +68,7 @@ internal class MessageRetrieveResponseTest {
         assertThat(messageRetrieveResponse.internalId()).contains("internal_id")
         assertThat(messageRetrieveResponse.messageId()).contains("message_id")
         assertThat(messageRetrieveResponse.protocol())
-            .contains(MessageRetrieveResponse.Protocol.IMESSAGE)
+            .contains(MessageRetrieveResponse.Protocol.PENDING)
         assertThat(messageRetrieveResponse.reactions().getOrNull())
             .containsExactly(
                 Reaction.builder()
@@ -112,7 +112,7 @@ internal class MessageRetrieveResponseTest {
                 .error("error")
                 .internalId("internal_id")
                 .messageId("message_id")
-                .protocol(MessageRetrieveResponse.Protocol.IMESSAGE)
+                .protocol(MessageRetrieveResponse.Protocol.PENDING)
                 .addReaction(
                     Reaction.builder()
                         .isAdded(true)

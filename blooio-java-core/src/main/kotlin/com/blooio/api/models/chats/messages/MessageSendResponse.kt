@@ -124,7 +124,9 @@ private constructor(
     fun participants(): Optional<List<String>> = participants.getOptional("participants")
 
     /**
-     * Initial status of the message(s)
+     * Initial status of the message(s). `queued` = accepted for delivery (the normal 202 result);
+     * `failed` = rejected before dispatch. Subsequent transitions (`sent` → `delivered`, or
+     * `failed`) are reported via the status endpoint and `message.status` webhooks.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -363,7 +365,12 @@ private constructor(
                 }
         }
 
-        /** Initial status of the message(s) */
+        /**
+         * Initial status of the message(s). `queued` = accepted for delivery (the normal 202
+         * result); `failed` = rejected before dispatch. Subsequent transitions (`sent` →
+         * `delivered`, or `failed`) are reported via the status endpoint and `message.status`
+         * webhooks.
+         */
         fun status(status: Status) = status(JsonField.of(status))
 
         /**
@@ -462,7 +469,11 @@ private constructor(
             (participants.asKnown().getOrNull()?.size ?: 0) +
             (status.asKnown().getOrNull()?.validity() ?: 0)
 
-    /** Initial status of the message(s) */
+    /**
+     * Initial status of the message(s). `queued` = accepted for delivery (the normal 202 result);
+     * `failed` = rejected before dispatch. Subsequent transitions (`sent` → `delivered`, or
+     * `failed`) are reported via the status endpoint and `message.status` webhooks.
+     */
     class Status @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
 
         /**

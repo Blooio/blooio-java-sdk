@@ -348,6 +348,12 @@ private constructor(
         fun messageId(): Optional<String> = messageId.getOptional("message_id")
 
         /**
+         * Transport used to carry the message; never null. `pending` = accepted and dispatched,
+         * wire service not resolved yet (settles within seconds of send); `imessage` = delivered
+         * over iMessage (blue bubble); `rcs` = delivered over RCS; `sms` = fell back to SMS/MMS
+         * (green bubble); `unknown` = accepted by the carrier but the wire service could not be
+         * resolved before the tracking window closed (see `error`).
+         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
@@ -380,6 +386,14 @@ private constructor(
         fun sender(): Optional<String> = sender.getOptional("sender")
 
         /**
+         * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch; `queued`
+         * = accepted and waiting to be handed to Apple/the carrier; `sent` = handed off to
+         * Apple/the carrier (protocol resolution happens around here); `delivered` = a delivery
+         * receipt was received; `failed` = could not be delivered (see `error`);
+         * `cancellation_requested` = a cancel was requested for a still-queued message
+         * (best-effort); `cancelled` = cancelled before dispatch. Inbound messages are surfaced via
+         * webhooks with `received`; read receipts arrive as a `read` event.
+         *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
@@ -658,10 +672,14 @@ private constructor(
              */
             fun messageId(messageId: JsonField<String>) = apply { this.messageId = messageId }
 
-            fun protocol(protocol: Protocol?) = protocol(JsonField.ofNullable(protocol))
-
-            /** Alias for calling [Builder.protocol] with `protocol.orElse(null)`. */
-            fun protocol(protocol: Optional<Protocol>) = protocol(protocol.getOrNull())
+            /**
+             * Transport used to carry the message; never null. `pending` = accepted and dispatched,
+             * wire service not resolved yet (settles within seconds of send); `imessage` =
+             * delivered over iMessage (blue bubble); `rcs` = delivered over RCS; `sms` = fell back
+             * to SMS/MMS (green bubble); `unknown` = accepted by the carrier but the wire service
+             * could not be resolved before the tracking window closed (see `error`).
+             */
+            fun protocol(protocol: Protocol) = protocol(JsonField.of(protocol))
 
             /**
              * Sets [Builder.protocol] to an arbitrary JSON value.
@@ -734,6 +752,15 @@ private constructor(
              */
             fun sender(sender: JsonField<String>) = apply { this.sender = sender }
 
+            /**
+             * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch;
+             * `queued` = accepted and waiting to be handed to Apple/the carrier; `sent` = handed
+             * off to Apple/the carrier (protocol resolution happens around here); `delivered` = a
+             * delivery receipt was received; `failed` = could not be delivered (see `error`);
+             * `cancellation_requested` = a cancel was requested for a still-queued message
+             * (best-effort); `cancelled` = cancelled before dispatch. Inbound messages are surfaced
+             * via webhooks with `received`; read receipts arrive as a `read` event.
+             */
             fun status(status: Status?) = status(JsonField.ofNullable(status))
 
             /** Alias for calling [Builder.status] with `status.orElse(null)`. */
@@ -1047,6 +1074,13 @@ private constructor(
             override fun toString() = value.toString()
         }
 
+        /**
+         * Transport used to carry the message; never null. `pending` = accepted and dispatched,
+         * wire service not resolved yet (settles within seconds of send); `imessage` = delivered
+         * over iMessage (blue bubble); `rcs` = delivered over RCS; `sms` = fell back to SMS/MMS
+         * (green bubble); `unknown` = accepted by the carrier but the wire service could not be
+         * resolved before the tracking window closed (see `error`).
+         */
         class Protocol @JsonCreator private constructor(private val value: JsonField<String>) :
             Enum {
 
@@ -1062,23 +1096,26 @@ private constructor(
 
             companion object {
 
+                @JvmField val PENDING = of("pending")
+
+                @JvmField val UNKNOWN = of("unknown")
+
                 @JvmField val IMESSAGE = of("imessage")
 
                 @JvmField val SMS = of("sms")
 
                 @JvmField val RCS = of("rcs")
 
-                @JvmField val NON_IMESSAGE = of("non-imessage")
-
                 @JvmStatic fun of(value: String) = Protocol(JsonField.of(value))
             }
 
             /** An enum containing [Protocol]'s known values. */
             enum class Known {
+                PENDING,
+                UNKNOWN,
                 IMESSAGE,
                 SMS,
                 RCS,
-                NON_IMESSAGE,
             }
 
             /**
@@ -1091,10 +1128,11 @@ private constructor(
              * - It was constructed with an arbitrary value using the [of] method.
              */
             enum class Value {
+                PENDING,
+                UNKNOWN,
                 IMESSAGE,
                 SMS,
                 RCS,
-                NON_IMESSAGE,
                 /**
                  * An enum member indicating that [Protocol] was instantiated with an unknown value.
                  */
@@ -1110,10 +1148,11 @@ private constructor(
              */
             fun value(): Value =
                 when (this) {
+                    PENDING -> Value.PENDING
+                    UNKNOWN -> Value.UNKNOWN
                     IMESSAGE -> Value.IMESSAGE
                     SMS -> Value.SMS
                     RCS -> Value.RCS
-                    NON_IMESSAGE -> Value.NON_IMESSAGE
                     else -> Value._UNKNOWN
                 }
 
@@ -1128,10 +1167,11 @@ private constructor(
              */
             fun known(): Known =
                 when (this) {
+                    PENDING -> Known.PENDING
+                    UNKNOWN -> Known.UNKNOWN
                     IMESSAGE -> Known.IMESSAGE
                     SMS -> Known.SMS
                     RCS -> Known.RCS
-                    NON_IMESSAGE -> Known.NON_IMESSAGE
                     else -> throw BlooioInvalidDataException("Unknown Protocol: $value")
                 }
 
@@ -1480,6 +1520,15 @@ private constructor(
                 "ReplyTo{guid=$guid, messageId=$messageId, partIndex=$partIndex, additionalProperties=$additionalProperties}"
         }
 
+        /**
+         * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch; `queued`
+         * = accepted and waiting to be handed to Apple/the carrier; `sent` = handed off to
+         * Apple/the carrier (protocol resolution happens around here); `delivered` = a delivery
+         * receipt was received; `failed` = could not be delivered (see `error`);
+         * `cancellation_requested` = a cancel was requested for a still-queued message
+         * (best-effort); `cancelled` = cancelled before dispatch. Inbound messages are surfaced via
+         * webhooks with `received`; read receipts arrive as a `read` event.
+         */
         class Status @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
 
             /**
