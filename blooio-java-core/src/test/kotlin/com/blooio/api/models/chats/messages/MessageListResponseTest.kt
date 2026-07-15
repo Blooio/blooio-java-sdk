@@ -25,7 +25,7 @@ internal class MessageListResponseTest {
                         .externalId("external_id")
                         .internalId("internal_id")
                         .messageId("message_id")
-                        .protocol(MessageListResponse.Message.Protocol.IMESSAGE)
+                        .protocol(MessageListResponse.Message.Protocol.PENDING)
                         .addReaction(
                             Reaction.builder()
                                 .isAdded(true)
@@ -61,7 +61,7 @@ internal class MessageListResponseTest {
                     .externalId("external_id")
                     .internalId("internal_id")
                     .messageId("message_id")
-                    .protocol(MessageListResponse.Message.Protocol.IMESSAGE)
+                    .protocol(MessageListResponse.Message.Protocol.PENDING)
                     .addReaction(
                         Reaction.builder()
                             .isAdded(true)
@@ -102,7 +102,7 @@ internal class MessageListResponseTest {
                         .externalId("external_id")
                         .internalId("internal_id")
                         .messageId("message_id")
-                        .protocol(MessageListResponse.Message.Protocol.IMESSAGE)
+                        .protocol(MessageListResponse.Message.Protocol.PENDING)
                         .addReaction(
                             Reaction.builder()
                                 .isAdded(true)
