@@ -12,7 +12,6 @@ internal class WebhookCreateParamsTest {
         WebhookCreateParams.builder()
             .webhookUrl("https://example.com/webhook")
             .validUntil(0L)
-            .webhookType(WebhookCreateParams.WebhookType.MESSAGE)
             .build()
     }
 
@@ -22,14 +21,12 @@ internal class WebhookCreateParamsTest {
             WebhookCreateParams.builder()
                 .webhookUrl("https://example.com/webhook")
                 .validUntil(0L)
-                .webhookType(WebhookCreateParams.WebhookType.MESSAGE)
                 .build()
 
         val body = params._body()
 
         assertThat(body.webhookUrl()).isEqualTo("https://example.com/webhook")
         assertThat(body.validUntil()).contains(0L)
-        assertThat(body.webhookType()).contains(WebhookCreateParams.WebhookType.MESSAGE)
     }
 
     @Test

@@ -2,7 +2,6 @@
 
 package com.blooio.api.models.webhooks
 
-import com.blooio.api.core.Enum
 import com.blooio.api.core.ExcludeMissing
 import com.blooio.api.core.JsonField
 import com.blooio.api.core.JsonMissing
@@ -19,9 +18,14 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.Collections
 import java.util.Objects
 import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
 
-/** Create a new webhook subscription. */
+/**
+ * Registration through this endpoint is closed and returns 410. Use POST /v4/webhooks to create new
+ * subscriptions. Existing webhooks keep working and can still be listed, updated, and deleted here.
+ * Re-posting the URL of a webhook that already exists still returns 200 with that webhook, so
+ * idempotent provisioning scripts continue to work unchanged.
+ */
+@Deprecated("deprecated")
 class WebhookCreateParams
 private constructor(
     private val body: Body,
@@ -30,7 +34,8 @@ private constructor(
 ) : Params {
 
     /**
-     * URL to receive webhook events
+     * URL of an existing webhook, for the idempotent 200 response. A URL that does not already
+     * exist returns 410.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
      *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -38,20 +43,12 @@ private constructor(
     fun webhookUrl(): String = body.webhookUrl()
 
     /**
-     * Expiration timestamp (-1 for no expiration)
+     * Ignored. Retained so existing request bodies stay valid.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
      */
     fun validUntil(): Optional<Long> = body.validUntil()
-
-    /**
-     * Type of events to receive
-     *
-     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-     *   server responded with an unexpected value).
-     */
-    fun webhookType(): Optional<WebhookType> = body.webhookType()
 
     /**
      * Returns the raw JSON value of [webhookUrl].
@@ -66,13 +63,6 @@ private constructor(
      * Unlike [validUntil], this method doesn't throw if the JSON field has an unexpected type.
      */
     fun _validUntil(): JsonField<Long> = body._validUntil()
-
-    /**
-     * Returns the raw JSON value of [webhookType].
-     *
-     * Unlike [webhookType], this method doesn't throw if the JSON field has an unexpected type.
-     */
-    fun _webhookType(): JsonField<WebhookType> = body._webhookType()
 
     fun _additionalBodyProperties(): Map<String, JsonValue> = body._additionalProperties()
 
@@ -118,11 +108,13 @@ private constructor(
          * Otherwise, it's more convenient to use the top-level setters instead:
          * - [webhookUrl]
          * - [validUntil]
-         * - [webhookType]
          */
         fun body(body: Body) = apply { this.body = body.toBuilder() }
 
-        /** URL to receive webhook events */
+        /**
+         * URL of an existing webhook, for the idempotent 200 response. A URL that does not already
+         * exist returns 410.
+         */
         fun webhookUrl(webhookUrl: String) = apply { body.webhookUrl(webhookUrl) }
 
         /**
@@ -134,7 +126,7 @@ private constructor(
          */
         fun webhookUrl(webhookUrl: JsonField<String>) = apply { body.webhookUrl(webhookUrl) }
 
-        /** Expiration timestamp (-1 for no expiration) */
+        /** Ignored. Retained so existing request bodies stay valid. */
         fun validUntil(validUntil: Long) = apply { body.validUntil(validUntil) }
 
         /**
@@ -144,20 +136,6 @@ private constructor(
          * method is primarily for setting the field to an undocumented or not yet supported value.
          */
         fun validUntil(validUntil: JsonField<Long>) = apply { body.validUntil(validUntil) }
-
-        /** Type of events to receive */
-        fun webhookType(webhookType: WebhookType) = apply { body.webhookType(webhookType) }
-
-        /**
-         * Sets [Builder.webhookType] to an arbitrary JSON value.
-         *
-         * You should usually call [Builder.webhookType] with a well-typed [WebhookType] value
-         * instead. This method is primarily for setting the field to an undocumented or not yet
-         * supported value.
-         */
-        fun webhookType(webhookType: JsonField<WebhookType>) = apply {
-            body.webhookType(webhookType)
-        }
 
         fun additionalBodyProperties(additionalBodyProperties: Map<String, JsonValue>) = apply {
             body.additionalProperties(additionalBodyProperties)
@@ -307,7 +285,6 @@ private constructor(
     private constructor(
         private val webhookUrl: JsonField<String>,
         private val validUntil: JsonField<Long>,
-        private val webhookType: JsonField<WebhookType>,
         private val additionalProperties: MutableMap<String, JsonValue>,
     ) {
 
@@ -319,13 +296,11 @@ private constructor(
             @JsonProperty("valid_until")
             @ExcludeMissing
             validUntil: JsonField<Long> = JsonMissing.of(),
-            @JsonProperty("webhook_type")
-            @ExcludeMissing
-            webhookType: JsonField<WebhookType> = JsonMissing.of(),
-        ) : this(webhookUrl, validUntil, webhookType, mutableMapOf())
+        ) : this(webhookUrl, validUntil, mutableMapOf())
 
         /**
-         * URL to receive webhook events
+         * URL of an existing webhook, for the idempotent 200 response. A URL that does not already
+         * exist returns 410.
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type or is
          *   unexpectedly missing or null (e.g. if the server responded with an unexpected value).
@@ -333,20 +308,12 @@ private constructor(
         fun webhookUrl(): String = webhookUrl.getRequired("webhook_url")
 
         /**
-         * Expiration timestamp (-1 for no expiration)
+         * Ignored. Retained so existing request bodies stay valid.
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
          */
         fun validUntil(): Optional<Long> = validUntil.getOptional("valid_until")
-
-        /**
-         * Type of events to receive
-         *
-         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
-         *   server responded with an unexpected value).
-         */
-        fun webhookType(): Optional<WebhookType> = webhookType.getOptional("webhook_type")
 
         /**
          * Returns the raw JSON value of [webhookUrl].
@@ -363,15 +330,6 @@ private constructor(
          * Unlike [validUntil], this method doesn't throw if the JSON field has an unexpected type.
          */
         @JsonProperty("valid_until") @ExcludeMissing fun _validUntil(): JsonField<Long> = validUntil
-
-        /**
-         * Returns the raw JSON value of [webhookType].
-         *
-         * Unlike [webhookType], this method doesn't throw if the JSON field has an unexpected type.
-         */
-        @JsonProperty("webhook_type")
-        @ExcludeMissing
-        fun _webhookType(): JsonField<WebhookType> = webhookType
 
         @JsonAnySetter
         private fun putAdditionalProperty(key: String, value: JsonValue) {
@@ -403,18 +361,19 @@ private constructor(
 
             private var webhookUrl: JsonField<String>? = null
             private var validUntil: JsonField<Long> = JsonMissing.of()
-            private var webhookType: JsonField<WebhookType> = JsonMissing.of()
             private var additionalProperties: MutableMap<String, JsonValue> = mutableMapOf()
 
             @JvmSynthetic
             internal fun from(body: Body) = apply {
                 webhookUrl = body.webhookUrl
                 validUntil = body.validUntil
-                webhookType = body.webhookType
                 additionalProperties = body.additionalProperties.toMutableMap()
             }
 
-            /** URL to receive webhook events */
+            /**
+             * URL of an existing webhook, for the idempotent 200 response. A URL that does not
+             * already exist returns 410.
+             */
             fun webhookUrl(webhookUrl: String) = webhookUrl(JsonField.of(webhookUrl))
 
             /**
@@ -426,7 +385,7 @@ private constructor(
              */
             fun webhookUrl(webhookUrl: JsonField<String>) = apply { this.webhookUrl = webhookUrl }
 
-            /** Expiration timestamp (-1 for no expiration) */
+            /** Ignored. Retained so existing request bodies stay valid. */
             fun validUntil(validUntil: Long) = validUntil(JsonField.of(validUntil))
 
             /**
@@ -437,20 +396,6 @@ private constructor(
              * supported value.
              */
             fun validUntil(validUntil: JsonField<Long>) = apply { this.validUntil = validUntil }
-
-            /** Type of events to receive */
-            fun webhookType(webhookType: WebhookType) = webhookType(JsonField.of(webhookType))
-
-            /**
-             * Sets [Builder.webhookType] to an arbitrary JSON value.
-             *
-             * You should usually call [Builder.webhookType] with a well-typed [WebhookType] value
-             * instead. This method is primarily for setting the field to an undocumented or not yet
-             * supported value.
-             */
-            fun webhookType(webhookType: JsonField<WebhookType>) = apply {
-                this.webhookType = webhookType
-            }
 
             fun additionalProperties(additionalProperties: Map<String, JsonValue>) = apply {
                 this.additionalProperties.clear()
@@ -487,7 +432,6 @@ private constructor(
                 Body(
                     checkRequired("webhookUrl", webhookUrl),
                     validUntil,
-                    webhookType,
                     additionalProperties.toMutableMap(),
                 )
         }
@@ -510,7 +454,6 @@ private constructor(
 
             webhookUrl()
             validUntil()
-            webhookType().ifPresent { it.validate() }
             validated = true
         }
 
@@ -531,8 +474,7 @@ private constructor(
         @JvmSynthetic
         internal fun validity(): Int =
             (if (webhookUrl.asKnown().isPresent) 1 else 0) +
-                (if (validUntil.asKnown().isPresent) 1 else 0) +
-                (webhookType.asKnown().getOrNull()?.validity() ?: 0)
+                (if (validUntil.asKnown().isPresent) 1 else 0)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) {
@@ -542,162 +484,17 @@ private constructor(
             return other is Body &&
                 webhookUrl == other.webhookUrl &&
                 validUntil == other.validUntil &&
-                webhookType == other.webhookType &&
                 additionalProperties == other.additionalProperties
         }
 
         private val hashCode: Int by lazy {
-            Objects.hash(webhookUrl, validUntil, webhookType, additionalProperties)
+            Objects.hash(webhookUrl, validUntil, additionalProperties)
         }
 
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Body{webhookUrl=$webhookUrl, validUntil=$validUntil, webhookType=$webhookType, additionalProperties=$additionalProperties}"
-    }
-
-    /** Type of events to receive */
-    class WebhookType @JsonCreator private constructor(private val value: JsonField<String>) :
-        Enum {
-
-        /**
-         * Returns this class instance's raw value.
-         *
-         * This is usually only useful if this instance was deserialized from data that doesn't
-         * match any known member, and you want to know that value. For example, if the SDK is on an
-         * older version than the API, then the API may respond with new members that the SDK is
-         * unaware of.
-         */
-        @com.fasterxml.jackson.annotation.JsonValue fun _value(): JsonField<String> = value
-
-        companion object {
-
-            @JvmField val MESSAGE = of("message")
-
-            @JvmField val STATUS = of("status")
-
-            @JvmField val ALL = of("all")
-
-            @JvmStatic fun of(value: String) = WebhookType(JsonField.of(value))
-        }
-
-        /** An enum containing [WebhookType]'s known values. */
-        enum class Known {
-            MESSAGE,
-            STATUS,
-            ALL,
-        }
-
-        /**
-         * An enum containing [WebhookType]'s known values, as well as an [_UNKNOWN] member.
-         *
-         * An instance of [WebhookType] can contain an unknown value in a couple of cases:
-         * - It was deserialized from data that doesn't match any known member. For example, if the
-         *   SDK is on an older version than the API, then the API may respond with new members that
-         *   the SDK is unaware of.
-         * - It was constructed with an arbitrary value using the [of] method.
-         */
-        enum class Value {
-            MESSAGE,
-            STATUS,
-            ALL,
-            /**
-             * An enum member indicating that [WebhookType] was instantiated with an unknown value.
-             */
-            _UNKNOWN,
-        }
-
-        /**
-         * Returns an enum member corresponding to this class instance's value, or [Value._UNKNOWN]
-         * if the class was instantiated with an unknown value.
-         *
-         * Use the [known] method instead if you're certain the value is always known or if you want
-         * to throw for the unknown case.
-         */
-        fun value(): Value =
-            when (this) {
-                MESSAGE -> Value.MESSAGE
-                STATUS -> Value.STATUS
-                ALL -> Value.ALL
-                else -> Value._UNKNOWN
-            }
-
-        /**
-         * Returns an enum member corresponding to this class instance's value.
-         *
-         * Use the [value] method instead if you're uncertain the value is always known and don't
-         * want to throw for the unknown case.
-         *
-         * @throws BlooioInvalidDataException if this class instance's value is a not a known
-         *   member.
-         */
-        fun known(): Known =
-            when (this) {
-                MESSAGE -> Known.MESSAGE
-                STATUS -> Known.STATUS
-                ALL -> Known.ALL
-                else -> throw BlooioInvalidDataException("Unknown WebhookType: $value")
-            }
-
-        /**
-         * Returns this class instance's primitive wire representation.
-         *
-         * This differs from the [toString] method because that method is primarily for debugging
-         * and generally doesn't throw.
-         *
-         * @throws BlooioInvalidDataException if this class instance's value does not have the
-         *   expected primitive type.
-         */
-        fun asString(): String =
-            _value().asString().orElseThrow { BlooioInvalidDataException("Value is not a String") }
-
-        private var validated: Boolean = false
-
-        /**
-         * Validates that the types of all values in this object match their expected types
-         * recursively.
-         *
-         * This method is _not_ forwards compatible with new types from the API for existing fields.
-         *
-         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
-         *   expected type.
-         */
-        fun validate(): WebhookType = apply {
-            if (validated) {
-                return@apply
-            }
-
-            known()
-            validated = true
-        }
-
-        fun isValid(): Boolean =
-            try {
-                validate()
-                true
-            } catch (e: BlooioInvalidDataException) {
-                false
-            }
-
-        /**
-         * Returns a score indicating how many valid values are contained in this object
-         * recursively.
-         *
-         * Used for best match union deserialization.
-         */
-        @JvmSynthetic internal fun validity(): Int = if (value() == Value._UNKNOWN) 0 else 1
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) {
-                return true
-            }
-
-            return other is WebhookType && value == other.value
-        }
-
-        override fun hashCode() = value.hashCode()
-
-        override fun toString() = value.toString()
+            "Body{webhookUrl=$webhookUrl, validUntil=$validUntil, additionalProperties=$additionalProperties}"
     }
 
     override fun equals(other: Any?): Boolean {
