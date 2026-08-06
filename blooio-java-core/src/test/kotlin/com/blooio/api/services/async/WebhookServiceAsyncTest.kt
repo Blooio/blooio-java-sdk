@@ -21,7 +21,6 @@ internal class WebhookServiceAsyncTest {
                 WebhookCreateParams.builder()
                     .webhookUrl("https://example.com/webhook")
                     .validUntil(0L)
-                    .webhookType(WebhookCreateParams.WebhookType.MESSAGE)
                     .build()
             )
 

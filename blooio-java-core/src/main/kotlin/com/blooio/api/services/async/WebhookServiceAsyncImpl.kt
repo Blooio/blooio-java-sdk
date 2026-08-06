@@ -56,6 +56,7 @@ class WebhookServiceAsyncImpl internal constructor(private val clientOptions: Cl
     /** View and replay webhook deliveries */
     override fun logs(): LogServiceAsync = logs
 
+    @Deprecated("deprecated")
     override fun create(
         params: WebhookCreateParams,
         requestOptions: RequestOptions,
@@ -121,6 +122,7 @@ class WebhookServiceAsyncImpl internal constructor(private val clientOptions: Cl
         private val createHandler: Handler<WebhookCreateResponse> =
             jsonHandler<WebhookCreateResponse>(clientOptions.jsonMapper)
 
+        @Deprecated("deprecated")
         override fun create(
             params: WebhookCreateParams,
             requestOptions: RequestOptions,

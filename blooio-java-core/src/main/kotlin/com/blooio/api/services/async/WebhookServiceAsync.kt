@@ -40,11 +40,18 @@ interface WebhookServiceAsync {
     /** View and replay webhook deliveries */
     fun logs(): LogServiceAsync
 
-    /** Create a new webhook subscription. */
+    /**
+     * Registration through this endpoint is closed and returns 410. Use POST /v4/webhooks to create
+     * new subscriptions. Existing webhooks keep working and can still be listed, updated, and
+     * deleted here. Re-posting the URL of a webhook that already exists still returns 200 with that
+     * webhook, so idempotent provisioning scripts continue to work unchanged.
+     */
+    @Deprecated("deprecated")
     fun create(params: WebhookCreateParams): CompletableFuture<WebhookCreateResponse> =
         create(params, RequestOptions.none())
 
     /** @see create */
+    @Deprecated("deprecated")
     fun create(
         params: WebhookCreateParams,
         requestOptions: RequestOptions = RequestOptions.none(),
@@ -191,12 +198,14 @@ interface WebhookServiceAsync {
          * Returns a raw HTTP response for `post /webhooks`, but is otherwise the same as
          * [WebhookServiceAsync.create].
          */
+        @Deprecated("deprecated")
         fun create(
             params: WebhookCreateParams
         ): CompletableFuture<HttpResponseFor<WebhookCreateResponse>> =
             create(params, RequestOptions.none())
 
         /** @see create */
+        @Deprecated("deprecated")
         fun create(
             params: WebhookCreateParams,
             requestOptions: RequestOptions = RequestOptions.none(),
