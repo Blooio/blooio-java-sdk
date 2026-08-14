@@ -3,7 +3,7 @@
 <!-- x-release-please-start-version -->
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.blooio.api/blooio-java)](https://central.sonatype.com/artifact/com.blooio.api/blooio-java/0.0.4)
-[![javadoc](https://javadoc.io/badge2/com.blooio.api/blooio-java/0.0.4/javadoc.svg)](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4)
+[![javadoc](https://javadoc.io/badge2/com.blooio.api/blooio-java/javadoc.svg)](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4)
 
 <!-- x-release-please-end -->
 
