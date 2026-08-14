@@ -72,7 +72,13 @@ private constructor(
     fun idempotencyKey(): Optional<String> = Optional.ofNullable(idempotencyKey)
 
     /**
-     * Array of attachment URLs or objects with url/name
+     * Array of attachment URLs or objects with url/name.
+     *
+     * **Voice memos:** a single audio file (`.mp3`, `.m4a`, `.wav`, `.aac`, `.opus`, `.ogg`) is
+     * automatically sent as a voice memo (the native waveform/scrubber bubble), not a plain
+     * audio-file attachment — no extra field is needed. A voice memo is a standalone bubble, so it
+     * cannot be combined with `text` or any other attachment; send the voice memo and the text as
+     * two separate messages.
      *
      * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
      *   server responded with an unexpected value).
@@ -312,7 +318,15 @@ private constructor(
          */
         fun body(body: Body) = apply { this.body = body.toBuilder() }
 
-        /** Array of attachment URLs or objects with url/name */
+        /**
+         * Array of attachment URLs or objects with url/name.
+         *
+         * **Voice memos:** a single audio file (`.mp3`, `.m4a`, `.wav`, `.aac`, `.opus`, `.ogg`) is
+         * automatically sent as a voice memo (the native waveform/scrubber bubble), not a plain
+         * audio-file attachment — no extra field is needed. A voice memo is a standalone bubble, so
+         * it cannot be combined with `text` or any other attachment; send the voice memo and the
+         * text as two separate messages.
+         */
         fun attachments(attachments: List<Attachment>) = apply { body.attachments(attachments) }
 
         /**
@@ -730,7 +744,13 @@ private constructor(
         )
 
         /**
-         * Array of attachment URLs or objects with url/name
+         * Array of attachment URLs or objects with url/name.
+         *
+         * **Voice memos:** a single audio file (`.mp3`, `.m4a`, `.wav`, `.aac`, `.opus`, `.ogg`) is
+         * automatically sent as a voice memo (the native waveform/scrubber bubble), not a plain
+         * audio-file attachment — no extra field is needed. A voice memo is a standalone bubble, so
+         * it cannot be combined with `text` or any other attachment; send the voice memo and the
+         * text as two separate messages.
          *
          * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
          *   server responded with an unexpected value).
@@ -969,7 +989,15 @@ private constructor(
                 additionalProperties = body.additionalProperties.toMutableMap()
             }
 
-            /** Array of attachment URLs or objects with url/name */
+            /**
+             * Array of attachment URLs or objects with url/name.
+             *
+             * **Voice memos:** a single audio file (`.mp3`, `.m4a`, `.wav`, `.aac`, `.opus`,
+             * `.ogg`) is automatically sent as a voice memo (the native waveform/scrubber bubble),
+             * not a plain audio-file attachment — no extra field is needed. A voice memo is a
+             * standalone bubble, so it cannot be combined with `text` or any other attachment; send
+             * the voice memo and the text as two separate messages.
+             */
             fun attachments(attachments: List<Attachment>) = attachments(JsonField.of(attachments))
 
             /**
