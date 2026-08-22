@@ -32,7 +32,7 @@ internal class MemberServiceAsyncTest {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val memberServiceAsync = client.groups().members()
 
-        val future =
+        val responseFuture =
             memberServiceAsync.add(
                 MemberAddParams.builder()
                     .groupId("grp_abc123def456")
@@ -40,7 +40,8 @@ internal class MemberServiceAsyncTest {
                     .build()
             )
 
-        val response = future.get()
+        val response = responseFuture.get()
+        response.validate()
     }
 
     @Disabled("Mock server tests are disabled")
@@ -49,7 +50,7 @@ internal class MemberServiceAsyncTest {
         val client = BlooioOkHttpClientAsync.builder().apiKey("My API Key").build()
         val memberServiceAsync = client.groups().members()
 
-        val future =
+        val memberFuture =
             memberServiceAsync.remove(
                 MemberRemoveParams.builder()
                     .groupId("grp_abc123def456")
@@ -57,6 +58,7 @@ internal class MemberServiceAsyncTest {
                     .build()
             )
 
-        val response = future.get()
+        val member = memberFuture.get()
+        member.validate()
     }
 }

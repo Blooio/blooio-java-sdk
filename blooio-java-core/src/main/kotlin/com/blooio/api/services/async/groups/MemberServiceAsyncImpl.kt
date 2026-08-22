@@ -5,7 +5,6 @@ package com.blooio.api.services.async.groups
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.RequestOptions
 import com.blooio.api.core.checkRequired
-import com.blooio.api.core.handlers.emptyHandler
 import com.blooio.api.core.handlers.errorBodyHandler
 import com.blooio.api.core.handlers.errorHandler
 import com.blooio.api.core.handlers.jsonHandler
@@ -18,9 +17,11 @@ import com.blooio.api.core.http.json
 import com.blooio.api.core.http.parseable
 import com.blooio.api.core.prepareAsync
 import com.blooio.api.models.groups.members.MemberAddParams
+import com.blooio.api.models.groups.members.MemberAddResponse
 import com.blooio.api.models.groups.members.MemberListParams
 import com.blooio.api.models.groups.members.MemberListResponse
 import com.blooio.api.models.groups.members.MemberRemoveParams
+import com.blooio.api.models.groups.members.MemberRemoveResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
@@ -48,16 +49,16 @@ class MemberServiceAsyncImpl internal constructor(private val clientOptions: Cli
     override fun add(
         params: MemberAddParams,
         requestOptions: RequestOptions,
-    ): CompletableFuture<Void?> =
+    ): CompletableFuture<MemberAddResponse> =
         // post /groups/{groupId}/members
-        withRawResponse().add(params, requestOptions).thenAccept {}
+        withRawResponse().add(params, requestOptions).thenApply { it.parse() }
 
     override fun remove(
         params: MemberRemoveParams,
         requestOptions: RequestOptions,
-    ): CompletableFuture<Void?> =
+    ): CompletableFuture<MemberRemoveResponse> =
         // delete /groups/{groupId}/members/{contactId}
-        withRawResponse().remove(params, requestOptions).thenAccept {}
+        withRawResponse().remove(params, requestOptions).thenApply { it.parse() }
 
     class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :
         MemberServiceAsync.WithRawResponse {
@@ -105,12 +106,13 @@ class MemberServiceAsyncImpl internal constructor(private val clientOptions: Cli
                 }
         }
 
-        private val addHandler: Handler<Void?> = emptyHandler()
+        private val addHandler: Handler<MemberAddResponse> =
+            jsonHandler<MemberAddResponse>(clientOptions.jsonMapper)
 
         override fun add(
             params: MemberAddParams,
             requestOptions: RequestOptions,
-        ): CompletableFuture<HttpResponse> {
+        ): CompletableFuture<HttpResponseFor<MemberAddResponse>> {
             // We check here instead of in the params builder because this can be specified
             // positionally or in the params class.
             checkRequired("groupId", params.groupId().getOrNull())
@@ -127,17 +129,24 @@ class MemberServiceAsyncImpl internal constructor(private val clientOptions: Cli
                 .thenComposeAsync { clientOptions.httpClient.executeAsync(it, requestOptions) }
                 .thenApply { response ->
                     errorHandler.handle(response).parseable {
-                        response.use { addHandler.handle(it) }
+                        response
+                            .use { addHandler.handle(it) }
+                            .also {
+                                if (requestOptions.responseValidation!!) {
+                                    it.validate()
+                                }
+                            }
                     }
                 }
         }
 
-        private val removeHandler: Handler<Void?> = emptyHandler()
+        private val removeHandler: Handler<MemberRemoveResponse> =
+            jsonHandler<MemberRemoveResponse>(clientOptions.jsonMapper)
 
         override fun remove(
             params: MemberRemoveParams,
             requestOptions: RequestOptions,
-        ): CompletableFuture<HttpResponse> {
+        ): CompletableFuture<HttpResponseFor<MemberRemoveResponse>> {
             // We check here instead of in the params builder because this can be specified
             // positionally or in the params class.
             checkRequired("contactId", params.contactId().getOrNull())
@@ -159,7 +168,13 @@ class MemberServiceAsyncImpl internal constructor(private val clientOptions: Cli
                 .thenComposeAsync { clientOptions.httpClient.executeAsync(it, requestOptions) }
                 .thenApply { response ->
                     errorHandler.handle(response).parseable {
-                        response.use { removeHandler.handle(it) }
+                        response
+                            .use { removeHandler.handle(it) }
+                            .also {
+                                if (requestOptions.responseValidation!!) {
+                                    it.validate()
+                                }
+                            }
                     }
                 }
         }
