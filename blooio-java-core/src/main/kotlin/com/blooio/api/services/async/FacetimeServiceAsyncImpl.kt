@@ -4,19 +4,17 @@ package com.blooio.api.services.async
 
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.RequestOptions
+import com.blooio.api.core.handlers.emptyHandler
 import com.blooio.api.core.handlers.errorBodyHandler
 import com.blooio.api.core.handlers.errorHandler
-import com.blooio.api.core.handlers.jsonHandler
 import com.blooio.api.core.http.HttpMethod
 import com.blooio.api.core.http.HttpRequest
 import com.blooio.api.core.http.HttpResponse
 import com.blooio.api.core.http.HttpResponse.Handler
-import com.blooio.api.core.http.HttpResponseFor
 import com.blooio.api.core.http.json
 import com.blooio.api.core.http.parseable
 import com.blooio.api.core.prepareAsync
 import com.blooio.api.models.facetime.FacetimeInitiateCallParams
-import com.blooio.api.models.facetime.FacetimeInitiateCallResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
@@ -36,9 +34,9 @@ class FacetimeServiceAsyncImpl internal constructor(private val clientOptions: C
     override fun initiateCall(
         params: FacetimeInitiateCallParams,
         requestOptions: RequestOptions,
-    ): CompletableFuture<FacetimeInitiateCallResponse> =
+    ): CompletableFuture<Void?> =
         // post /facetime/calls
-        withRawResponse().initiateCall(params, requestOptions).thenApply { it.parse() }
+        withRawResponse().initiateCall(params, requestOptions).thenAccept {}
 
     class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :
         FacetimeServiceAsync.WithRawResponse {
@@ -53,13 +51,12 @@ class FacetimeServiceAsyncImpl internal constructor(private val clientOptions: C
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
-        private val initiateCallHandler: Handler<FacetimeInitiateCallResponse> =
-            jsonHandler<FacetimeInitiateCallResponse>(clientOptions.jsonMapper)
+        private val initiateCallHandler: Handler<Void?> = emptyHandler()
 
         override fun initiateCall(
             params: FacetimeInitiateCallParams,
             requestOptions: RequestOptions,
-        ): CompletableFuture<HttpResponseFor<FacetimeInitiateCallResponse>> {
+        ): CompletableFuture<HttpResponse> {
             val request =
                 HttpRequest.builder()
                     .method(HttpMethod.POST)
@@ -73,13 +70,7 @@ class FacetimeServiceAsyncImpl internal constructor(private val clientOptions: C
                 .thenComposeAsync { clientOptions.httpClient.executeAsync(it, requestOptions) }
                 .thenApply { response ->
                     errorHandler.handle(response).parseable {
-                        response
-                            .use { initiateCallHandler.handle(it) }
-                            .also {
-                                if (requestOptions.responseValidation!!) {
-                                    it.validate()
-                                }
-                            }
+                        response.use { initiateCallHandler.handle(it) }
                     }
                 }
         }
