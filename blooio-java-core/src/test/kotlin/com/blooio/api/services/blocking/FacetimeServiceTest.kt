@@ -15,8 +15,11 @@ internal class FacetimeServiceTest {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val facetimeService = client.facetime()
 
-        facetimeService.initiateCall(
-            FacetimeInitiateCallParams.builder().handle("+15551234567").build()
-        )
+        val response =
+            facetimeService.initiateCall(
+                FacetimeInitiateCallParams.builder().handle("+15551234567").build()
+            )
+
+        response.validate()
     }
 }

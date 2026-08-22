@@ -4,8 +4,9 @@ package com.blooio.api.services.blocking
 
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.RequestOptions
-import com.blooio.api.core.http.HttpResponse
+import com.blooio.api.core.http.HttpResponseFor
 import com.blooio.api.models.facetime.FacetimeInitiateCallParams
+import com.blooio.api.models.facetime.FacetimeInitiateCallResponse
 import com.google.errorprone.annotations.MustBeClosed
 import java.util.function.Consumer
 
@@ -32,14 +33,14 @@ interface FacetimeService {
      * FaceTime link that anyone can use to join the call. The call will ring the contact and
      * auto-admit the first person who joins via the link.
      */
-    fun initiateCall(params: FacetimeInitiateCallParams) =
+    fun initiateCall(params: FacetimeInitiateCallParams): FacetimeInitiateCallResponse =
         initiateCall(params, RequestOptions.none())
 
     /** @see initiateCall */
     fun initiateCall(
         params: FacetimeInitiateCallParams,
         requestOptions: RequestOptions = RequestOptions.none(),
-    )
+    ): FacetimeInitiateCallResponse
 
     /** A view of [FacetimeService] that provides access to raw HTTP responses for each method. */
     interface WithRawResponse {
@@ -56,7 +57,9 @@ interface FacetimeService {
          * [FacetimeService.initiateCall].
          */
         @MustBeClosed
-        fun initiateCall(params: FacetimeInitiateCallParams): HttpResponse =
+        fun initiateCall(
+            params: FacetimeInitiateCallParams
+        ): HttpResponseFor<FacetimeInitiateCallResponse> =
             initiateCall(params, RequestOptions.none())
 
         /** @see initiateCall */
@@ -64,6 +67,6 @@ interface FacetimeService {
         fun initiateCall(
             params: FacetimeInitiateCallParams,
             requestOptions: RequestOptions = RequestOptions.none(),
-        ): HttpResponse
+        ): HttpResponseFor<FacetimeInitiateCallResponse>
     }
 }

@@ -31,9 +31,15 @@ internal class MemberServiceTest {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val memberService = client.groups().members()
 
-        memberService.add(
-            MemberAddParams.builder().groupId("grp_abc123def456").contactId("+15551234567").build()
-        )
+        val response =
+            memberService.add(
+                MemberAddParams.builder()
+                    .groupId("grp_abc123def456")
+                    .contactId("+15551234567")
+                    .build()
+            )
+
+        response.validate()
     }
 
     @Disabled("Mock server tests are disabled")
@@ -42,11 +48,14 @@ internal class MemberServiceTest {
         val client = BlooioOkHttpClient.builder().apiKey("My API Key").build()
         val memberService = client.groups().members()
 
-        memberService.remove(
-            MemberRemoveParams.builder()
-                .groupId("grp_abc123def456")
-                .contactId("%2B15551234567")
-                .build()
-        )
+        val member =
+            memberService.remove(
+                MemberRemoveParams.builder()
+                    .groupId("grp_abc123def456")
+                    .contactId("%2B15551234567")
+                    .build()
+            )
+
+        member.validate()
     }
 }
