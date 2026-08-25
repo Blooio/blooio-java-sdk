@@ -57,7 +57,13 @@ interface MessageServiceAsync {
         requestOptions: RequestOptions = RequestOptions.none(),
     ): CompletableFuture<MessageRetrieveResponse>
 
-    /** List all messages in a conversation with optional filtering. */
+    /**
+     * List all messages in a conversation with optional filtering.
+     *
+     * A conversation must already exist: this returns `404` for an address the organization has
+     * never exchanged a message with, rather than an empty list. Use `GET /chats` to enumerate the
+     * conversations that do exist.
+     */
     fun list(chatId: String): CompletableFuture<MessageListResponse> =
         list(chatId, MessageListParams.none())
 

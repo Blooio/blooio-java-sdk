@@ -13,7 +13,13 @@ import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-/** List all messages in a conversation with optional filtering. */
+/**
+ * List all messages in a conversation with optional filtering.
+ *
+ * A conversation must already exist: this returns `404` for an address the organization has never
+ * exchanged a message with, rather than an empty list. Use `GET /chats` to enumerate the
+ * conversations that do exist.
+ */
 class MessageListParams
 private constructor(
     private val chatId: String?,
