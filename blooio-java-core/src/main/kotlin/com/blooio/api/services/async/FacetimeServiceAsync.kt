@@ -4,9 +4,8 @@ package com.blooio.api.services.async
 
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.RequestOptions
-import com.blooio.api.core.http.HttpResponseFor
+import com.blooio.api.core.http.HttpResponse
 import com.blooio.api.models.facetime.FacetimeInitiateCallParams
-import com.blooio.api.models.facetime.FacetimeInitiateCallResponse
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
@@ -33,15 +32,14 @@ interface FacetimeServiceAsync {
      * FaceTime link that anyone can use to join the call. The call will ring the contact and
      * auto-admit the first person who joins via the link.
      */
-    fun initiateCall(
-        params: FacetimeInitiateCallParams
-    ): CompletableFuture<FacetimeInitiateCallResponse> = initiateCall(params, RequestOptions.none())
+    fun initiateCall(params: FacetimeInitiateCallParams): CompletableFuture<Void?> =
+        initiateCall(params, RequestOptions.none())
 
     /** @see initiateCall */
     fun initiateCall(
         params: FacetimeInitiateCallParams,
         requestOptions: RequestOptions = RequestOptions.none(),
-    ): CompletableFuture<FacetimeInitiateCallResponse>
+    ): CompletableFuture<Void?>
 
     /**
      * A view of [FacetimeServiceAsync] that provides access to raw HTTP responses for each method.
@@ -61,15 +59,13 @@ interface FacetimeServiceAsync {
          * Returns a raw HTTP response for `post /facetime/calls`, but is otherwise the same as
          * [FacetimeServiceAsync.initiateCall].
          */
-        fun initiateCall(
-            params: FacetimeInitiateCallParams
-        ): CompletableFuture<HttpResponseFor<FacetimeInitiateCallResponse>> =
+        fun initiateCall(params: FacetimeInitiateCallParams): CompletableFuture<HttpResponse> =
             initiateCall(params, RequestOptions.none())
 
         /** @see initiateCall */
         fun initiateCall(
             params: FacetimeInitiateCallParams,
             requestOptions: RequestOptions = RequestOptions.none(),
-        ): CompletableFuture<HttpResponseFor<FacetimeInitiateCallResponse>>
+        ): CompletableFuture<HttpResponse>
     }
 }
