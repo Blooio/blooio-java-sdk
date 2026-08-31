@@ -659,6 +659,8 @@ private constructor(
         @JsonCreator(mode = JsonCreator.Mode.DISABLED)
         private constructor(
             private val attachments: JsonField<List<Attachment>>,
+            private val chatGuid: JsonField<String>,
+            private val chatName: JsonField<String>,
             private val deliveredAt: JsonField<Long>,
             private val errorCode: JsonField<String>,
             private val errorMessage: JsonField<String>,
@@ -685,6 +687,12 @@ private constructor(
                 @JsonProperty("attachments")
                 @ExcludeMissing
                 attachments: JsonField<List<Attachment>> = JsonMissing.of(),
+                @JsonProperty("chat_guid")
+                @ExcludeMissing
+                chatGuid: JsonField<String> = JsonMissing.of(),
+                @JsonProperty("chat_name")
+                @ExcludeMissing
+                chatName: JsonField<String> = JsonMissing.of(),
                 @JsonProperty("delivered_at")
                 @ExcludeMissing
                 deliveredAt: JsonField<Long> = JsonMissing.of(),
@@ -733,6 +741,8 @@ private constructor(
                 timestamp: JsonField<Long> = JsonMissing.of(),
             ) : this(
                 attachments,
+                chatGuid,
+                chatName,
                 deliveredAt,
                 errorCode,
                 errorMessage,
@@ -761,6 +771,27 @@ private constructor(
              *   the server responded with an unexpected value).
              */
             fun attachments(): Optional<List<Attachment>> = attachments.getOptional("attachments")
+
+            /**
+             * The device's own identifier for the group conversation this message arrived in (only
+             * on `message.received` when is_group=true). Two group chats can hold the same members
+             * and are then indistinguishable by `group_id` and `participants` alone; `chat_guid` is
+             * what tells them apart. Matches the `chat_guid` on GET /groups/{groupId}.
+             *
+             * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if
+             *   the server responded with an unexpected value).
+             */
+            fun chatGuid(): Optional<String> = chatGuid.getOptional("chat_guid")
+
+            /**
+             * The name the device reports for the conversation (only on `message.received` when
+             * is_group=true). May differ from `group_name`, or be present when `group_name` is
+             * null.
+             *
+             * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if
+             *   the server responded with an unexpected value).
+             */
+            fun chatName(): Optional<String> = chatName.getOptional("chat_name")
 
             /**
              * Timestamp when message was delivered (for message.delivered events)
@@ -844,7 +875,9 @@ private constructor(
             fun messageId(): Optional<String> = messageId.getOptional("message_id")
 
             /**
-             * Array of group participants (only present when is_group=true)
+             * Array of group participants (only present when is_group=true). One entry per person:
+             * a participant appears once even if Blooio holds more than one identity for their
+             * number.
              *
              * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if
              *   the server responded with an unexpected value).
@@ -925,6 +958,22 @@ private constructor(
             @JsonProperty("attachments")
             @ExcludeMissing
             fun _attachments(): JsonField<List<Attachment>> = attachments
+
+            /**
+             * Returns the raw JSON value of [chatGuid].
+             *
+             * Unlike [chatGuid], this method doesn't throw if the JSON field has an unexpected
+             * type.
+             */
+            @JsonProperty("chat_guid") @ExcludeMissing fun _chatGuid(): JsonField<String> = chatGuid
+
+            /**
+             * Returns the raw JSON value of [chatName].
+             *
+             * Unlike [chatName], this method doesn't throw if the JSON field has an unexpected
+             * type.
+             */
+            @JsonProperty("chat_name") @ExcludeMissing fun _chatName(): JsonField<String> = chatName
 
             /**
              * Returns the raw JSON value of [deliveredAt].
@@ -1102,6 +1151,8 @@ private constructor(
             class Builder internal constructor() {
 
                 private var attachments: JsonField<MutableList<Attachment>>? = null
+                private var chatGuid: JsonField<String> = JsonMissing.of()
+                private var chatName: JsonField<String> = JsonMissing.of()
                 private var deliveredAt: JsonField<Long> = JsonMissing.of()
                 private var errorCode: JsonField<String> = JsonMissing.of()
                 private var errorMessage: JsonField<String> = JsonMissing.of()
@@ -1125,6 +1176,8 @@ private constructor(
                 @JvmSynthetic
                 internal fun from(eventBody: EventBody) = apply {
                     attachments = eventBody.attachments.map { it.toMutableList() }
+                    chatGuid = eventBody.chatGuid
+                    chatName = eventBody.chatName
                     deliveredAt = eventBody.deliveredAt
                     errorCode = eventBody.errorCode
                     errorMessage = eventBody.errorMessage
@@ -1176,6 +1229,46 @@ private constructor(
                             checkKnown("attachments", it).add(attachment)
                         }
                 }
+
+                /**
+                 * The device's own identifier for the group conversation this message arrived in
+                 * (only on `message.received` when is_group=true). Two group chats can hold the
+                 * same members and are then indistinguishable by `group_id` and `participants`
+                 * alone; `chat_guid` is what tells them apart. Matches the `chat_guid` on GET
+                 * /groups/{groupId}.
+                 */
+                fun chatGuid(chatGuid: String?) = chatGuid(JsonField.ofNullable(chatGuid))
+
+                /** Alias for calling [Builder.chatGuid] with `chatGuid.orElse(null)`. */
+                fun chatGuid(chatGuid: Optional<String>) = chatGuid(chatGuid.getOrNull())
+
+                /**
+                 * Sets [Builder.chatGuid] to an arbitrary JSON value.
+                 *
+                 * You should usually call [Builder.chatGuid] with a well-typed [String] value
+                 * instead. This method is primarily for setting the field to an undocumented or not
+                 * yet supported value.
+                 */
+                fun chatGuid(chatGuid: JsonField<String>) = apply { this.chatGuid = chatGuid }
+
+                /**
+                 * The name the device reports for the conversation (only on `message.received` when
+                 * is_group=true). May differ from `group_name`, or be present when `group_name` is
+                 * null.
+                 */
+                fun chatName(chatName: String?) = chatName(JsonField.ofNullable(chatName))
+
+                /** Alias for calling [Builder.chatName] with `chatName.orElse(null)`. */
+                fun chatName(chatName: Optional<String>) = chatName(chatName.getOrNull())
+
+                /**
+                 * Sets [Builder.chatName] to an arbitrary JSON value.
+                 *
+                 * You should usually call [Builder.chatName] with a well-typed [String] value
+                 * instead. This method is primarily for setting the field to an undocumented or not
+                 * yet supported value.
+                 */
+                fun chatName(chatName: JsonField<String>) = apply { this.chatName = chatName }
 
                 /** Timestamp when message was delivered (for message.delivered events) */
                 fun deliveredAt(deliveredAt: Long?) = deliveredAt(JsonField.ofNullable(deliveredAt))
@@ -1335,7 +1428,11 @@ private constructor(
                  */
                 fun messageId(messageId: JsonField<String>) = apply { this.messageId = messageId }
 
-                /** Array of group participants (only present when is_group=true) */
+                /**
+                 * Array of group participants (only present when is_group=true). One entry per
+                 * person: a participant appears once even if Blooio holds more than one identity
+                 * for their number.
+                 */
                 fun participants(participants: List<Participant>?) =
                     participants(JsonField.ofNullable(participants))
 
@@ -1519,6 +1616,8 @@ private constructor(
                 fun build(): EventBody =
                     EventBody(
                         (attachments ?: JsonMissing.of()).map { it.toImmutable() },
+                        chatGuid,
+                        chatName,
                         deliveredAt,
                         errorCode,
                         errorMessage,
@@ -1559,6 +1658,8 @@ private constructor(
                 }
 
                 attachments().ifPresent { it.forEach { it.validate() } }
+                chatGuid()
+                chatName()
                 deliveredAt()
                 errorCode()
                 errorMessage()
@@ -1597,6 +1698,8 @@ private constructor(
             @JvmSynthetic
             internal fun validity(): Int =
                 (attachments.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
+                    (if (chatGuid.asKnown().isPresent) 1 else 0) +
+                    (if (chatName.asKnown().isPresent) 1 else 0) +
                     (if (deliveredAt.asKnown().isPresent) 1 else 0) +
                     (if (errorCode.asKnown().isPresent) 1 else 0) +
                     (if (errorMessage.asKnown().isPresent) 1 else 0) +
@@ -2399,6 +2502,8 @@ private constructor(
 
                 return other is EventBody &&
                     attachments == other.attachments &&
+                    chatGuid == other.chatGuid &&
+                    chatName == other.chatName &&
                     deliveredAt == other.deliveredAt &&
                     errorCode == other.errorCode &&
                     errorMessage == other.errorMessage &&
@@ -2423,6 +2528,8 @@ private constructor(
             private val hashCode: Int by lazy {
                 Objects.hash(
                     attachments,
+                    chatGuid,
+                    chatName,
                     deliveredAt,
                     errorCode,
                     errorMessage,
@@ -2448,7 +2555,7 @@ private constructor(
             override fun hashCode(): Int = hashCode
 
             override fun toString() =
-                "EventBody{attachments=$attachments, deliveredAt=$deliveredAt, errorCode=$errorCode, errorMessage=$errorMessage, event=$event, externalId=$externalId, groupId=$groupId, groupName=$groupName, internalId=$internalId, isGroup=$isGroup, messageId=$messageId, participants=$participants, protocol=$protocol, readAt=$readAt, sender=$sender, sentAt=$sentAt, status=$status, text=$text, timestamp=$timestamp, additionalProperties=$additionalProperties}"
+                "EventBody{attachments=$attachments, chatGuid=$chatGuid, chatName=$chatName, deliveredAt=$deliveredAt, errorCode=$errorCode, errorMessage=$errorMessage, event=$event, externalId=$externalId, groupId=$groupId, groupName=$groupName, internalId=$internalId, isGroup=$isGroup, messageId=$messageId, participants=$participants, protocol=$protocol, readAt=$readAt, sender=$sender, sentAt=$sentAt, status=$status, text=$text, timestamp=$timestamp, additionalProperties=$additionalProperties}"
         }
 
         /** Additional metadata about the webhook delivery */
