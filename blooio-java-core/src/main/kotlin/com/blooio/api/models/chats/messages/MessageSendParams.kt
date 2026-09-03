@@ -120,6 +120,47 @@ private constructor(
     fun effect(): Optional<Effect> = body.effect()
 
     /**
+     * How to interpret `text` (and each `parts[].text`). Defaults to `plain`, which sends the
+     * string exactly as given.
+     *
+     * With `markdown`, four constructs are parsed and delivered as real iMessage rich text — the
+     * recipient sees styled text, not delimiters:
+     *
+     * | Construct     | Syntax                   |
+     * |---------------|--------------------------|
+     * | Bold          | `**bold**` or `__bold__` |
+     * | Italic        | `*italic*` or `_italic_` |
+     * | Underline     | `++underline++`          |
+     * | Strikethrough | `~~strike~~`             |
+     *
+     * They nest freely (`**bold and _italic_**`). Everything else Markdown can express — headings,
+     * lists, links, code spans, blockquotes, images — is NOT styling iMessage can carry, so it is
+     * passed through as literal characters: `[Blooio](https://blooio.com)` is delivered with its
+     * brackets and URL intact, and `# Heading` keeps its `#`. Escape a delimiter with a backslash
+     * (`\*not italic\*`) to send it literally.
+     *
+     * The styling travels in the message's attributed body, so the stored `text` and the `text`
+     * returned on reads and webhooks is always the plain string the recipient sees, with the
+     * delimiters removed. The Markdown itself comes back as `formatted_text`, re-serialized into a
+     * normalized spelling rather than echoed verbatim (`__bold__` returns as `**bold**`).
+     *
+     * Only valid on Blooio iMessage channels — `400 format_unsupported_for_channel_type` on any
+     * other channel type, since no other channel type has a rich-text equivalent and would
+     * otherwise deliver your delimiters as literal text. Rich text also requires the message to be
+     * delivered over iMessage: a Blooio send that falls back to SMS arrives as unstyled plain text
+     * (the `text` string), because SMS cannot carry styling.
+     *
+     * Applies to a text send and to `parts`. Rejected with `400 invalid_content` when combined with
+     * `attachments` — a media caption is not a styled bubble, so send the media and the styled text
+     * as two messages — when set without `text` or `parts`, when the Markdown source exceeds 20000
+     * characters, or when it compiles to more than 256 distinct formatting ranges.
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun format(): Optional<Format> = body.format()
+
+    /**
      * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
      * first assigned Twilio number is auto-selected. For Blooio (iMessage) API keys, this selects a
      * specific number from your pool. Must be a number assigned to your API key.
@@ -206,6 +247,13 @@ private constructor(
      * Unlike [effect], this method doesn't throw if the JSON field has an unexpected type.
      */
     fun _effect(): JsonField<Effect> = body._effect()
+
+    /**
+     * Returns the raw JSON value of [format].
+     *
+     * Unlike [format], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    fun _format(): JsonField<Format> = body._format()
 
     /**
      * Returns the raw JSON value of [fromNumber].
@@ -311,9 +359,9 @@ private constructor(
          * Otherwise, it's more convenient to use the top-level setters instead:
          * - [attachments]
          * - [effect]
+         * - [format]
          * - [fromNumber]
          * - [linkPreview]
-         * - [parts]
          * - etc.
          */
         fun body(body: Body) = apply { this.body = body.toBuilder() }
@@ -399,6 +447,54 @@ private constructor(
          * method is primarily for setting the field to an undocumented or not yet supported value.
          */
         fun effect(effect: JsonField<Effect>) = apply { body.effect(effect) }
+
+        /**
+         * How to interpret `text` (and each `parts[].text`). Defaults to `plain`, which sends the
+         * string exactly as given.
+         *
+         * With `markdown`, four constructs are parsed and delivered as real iMessage rich text —
+         * the recipient sees styled text, not delimiters:
+         *
+         * | Construct     | Syntax                   |
+         * |---------------|--------------------------|
+         * | Bold          | `**bold**` or `__bold__` |
+         * | Italic        | `*italic*` or `_italic_` |
+         * | Underline     | `++underline++`          |
+         * | Strikethrough | `~~strike~~`             |
+         *
+         * They nest freely (`**bold and _italic_**`). Everything else Markdown can express —
+         * headings, lists, links, code spans, blockquotes, images — is NOT styling iMessage can
+         * carry, so it is passed through as literal characters: `[Blooio](https://blooio.com)` is
+         * delivered with its brackets and URL intact, and `# Heading` keeps its `#`. Escape a
+         * delimiter with a backslash (`\*not italic\*`) to send it literally.
+         *
+         * The styling travels in the message's attributed body, so the stored `text` and the `text`
+         * returned on reads and webhooks is always the plain string the recipient sees, with the
+         * delimiters removed. The Markdown itself comes back as `formatted_text`, re-serialized
+         * into a normalized spelling rather than echoed verbatim (`__bold__` returns as
+         * `**bold**`).
+         *
+         * Only valid on Blooio iMessage channels — `400 format_unsupported_for_channel_type` on any
+         * other channel type, since no other channel type has a rich-text equivalent and would
+         * otherwise deliver your delimiters as literal text. Rich text also requires the message to
+         * be delivered over iMessage: a Blooio send that falls back to SMS arrives as unstyled
+         * plain text (the `text` string), because SMS cannot carry styling.
+         *
+         * Applies to a text send and to `parts`. Rejected with `400 invalid_content` when combined
+         * with `attachments` — a media caption is not a styled bubble, so send the media and the
+         * styled text as two messages — when set without `text` or `parts`, when the Markdown
+         * source exceeds 20000 characters, or when it compiles to more than 256 distinct formatting
+         * ranges.
+         */
+        fun format(format: Format) = apply { body.format(format) }
+
+        /**
+         * Sets [Builder.format] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.format] with a well-typed [Format] value instead. This
+         * method is primarily for setting the field to an undocumented or not yet supported value.
+         */
+        fun format(format: JsonField<Format>) = apply { body.format(format) }
 
         /**
          * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
@@ -697,6 +793,7 @@ private constructor(
     private constructor(
         private val attachments: JsonField<List<Attachment>>,
         private val effect: JsonField<Effect>,
+        private val format: JsonField<Format>,
         private val fromNumber: JsonField<String>,
         private val linkPreview: JsonField<LinkPreview>,
         private val parts: JsonField<List<Part>>,
@@ -713,6 +810,7 @@ private constructor(
             @ExcludeMissing
             attachments: JsonField<List<Attachment>> = JsonMissing.of(),
             @JsonProperty("effect") @ExcludeMissing effect: JsonField<Effect> = JsonMissing.of(),
+            @JsonProperty("format") @ExcludeMissing format: JsonField<Format> = JsonMissing.of(),
             @JsonProperty("from_number")
             @ExcludeMissing
             fromNumber: JsonField<String> = JsonMissing.of(),
@@ -733,6 +831,7 @@ private constructor(
         ) : this(
             attachments,
             effect,
+            format,
             fromNumber,
             linkPreview,
             parts,
@@ -790,6 +889,49 @@ private constructor(
          *   server responded with an unexpected value).
          */
         fun effect(): Optional<Effect> = effect.getOptional("effect")
+
+        /**
+         * How to interpret `text` (and each `parts[].text`). Defaults to `plain`, which sends the
+         * string exactly as given.
+         *
+         * With `markdown`, four constructs are parsed and delivered as real iMessage rich text —
+         * the recipient sees styled text, not delimiters:
+         *
+         * | Construct     | Syntax                   |
+         * |---------------|--------------------------|
+         * | Bold          | `**bold**` or `__bold__` |
+         * | Italic        | `*italic*` or `_italic_` |
+         * | Underline     | `++underline++`          |
+         * | Strikethrough | `~~strike~~`             |
+         *
+         * They nest freely (`**bold and _italic_**`). Everything else Markdown can express —
+         * headings, lists, links, code spans, blockquotes, images — is NOT styling iMessage can
+         * carry, so it is passed through as literal characters: `[Blooio](https://blooio.com)` is
+         * delivered with its brackets and URL intact, and `# Heading` keeps its `#`. Escape a
+         * delimiter with a backslash (`\*not italic\*`) to send it literally.
+         *
+         * The styling travels in the message's attributed body, so the stored `text` and the `text`
+         * returned on reads and webhooks is always the plain string the recipient sees, with the
+         * delimiters removed. The Markdown itself comes back as `formatted_text`, re-serialized
+         * into a normalized spelling rather than echoed verbatim (`__bold__` returns as
+         * `**bold**`).
+         *
+         * Only valid on Blooio iMessage channels — `400 format_unsupported_for_channel_type` on any
+         * other channel type, since no other channel type has a rich-text equivalent and would
+         * otherwise deliver your delimiters as literal text. Rich text also requires the message to
+         * be delivered over iMessage: a Blooio send that falls back to SMS arrives as unstyled
+         * plain text (the `text` string), because SMS cannot carry styling.
+         *
+         * Applies to a text send and to `parts`. Rejected with `400 invalid_content` when combined
+         * with `attachments` — a media caption is not a styled bubble, so send the media and the
+         * styled text as two messages — when set without `text` or `parts`, when the Markdown
+         * source exceeds 20000 characters, or when it compiles to more than 256 distinct formatting
+         * ranges.
+         *
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
+         */
+        fun format(): Optional<Format> = format.getOptional("format")
 
         /**
          * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted, the
@@ -885,6 +1027,13 @@ private constructor(
         @JsonProperty("effect") @ExcludeMissing fun _effect(): JsonField<Effect> = effect
 
         /**
+         * Returns the raw JSON value of [format].
+         *
+         * Unlike [format], this method doesn't throw if the JSON field has an unexpected type.
+         */
+        @JsonProperty("format") @ExcludeMissing fun _format(): JsonField<Format> = format
+
+        /**
          * Returns the raw JSON value of [fromNumber].
          *
          * Unlike [fromNumber], this method doesn't throw if the JSON field has an unexpected type.
@@ -966,6 +1115,7 @@ private constructor(
 
             private var attachments: JsonField<MutableList<Attachment>>? = null
             private var effect: JsonField<Effect> = JsonMissing.of()
+            private var format: JsonField<Format> = JsonMissing.of()
             private var fromNumber: JsonField<String> = JsonMissing.of()
             private var linkPreview: JsonField<LinkPreview> = JsonMissing.of()
             private var parts: JsonField<MutableList<Part>>? = null
@@ -979,6 +1129,7 @@ private constructor(
             internal fun from(body: Body) = apply {
                 attachments = body.attachments.map { it.toMutableList() }
                 effect = body.effect
+                format = body.format
                 fromNumber = body.fromNumber
                 linkPreview = body.linkPreview
                 parts = body.parts.map { it.toMutableList() }
@@ -1076,6 +1227,55 @@ private constructor(
              * supported value.
              */
             fun effect(effect: JsonField<Effect>) = apply { this.effect = effect }
+
+            /**
+             * How to interpret `text` (and each `parts[].text`). Defaults to `plain`, which sends
+             * the string exactly as given.
+             *
+             * With `markdown`, four constructs are parsed and delivered as real iMessage rich text
+             * — the recipient sees styled text, not delimiters:
+             *
+             * | Construct     | Syntax                   |
+             * |---------------|--------------------------|
+             * | Bold          | `**bold**` or `__bold__` |
+             * | Italic        | `*italic*` or `_italic_` |
+             * | Underline     | `++underline++`          |
+             * | Strikethrough | `~~strike~~`             |
+             *
+             * They nest freely (`**bold and _italic_**`). Everything else Markdown can express —
+             * headings, lists, links, code spans, blockquotes, images — is NOT styling iMessage can
+             * carry, so it is passed through as literal characters: `[Blooio](https://blooio.com)`
+             * is delivered with its brackets and URL intact, and `# Heading` keeps its `#`. Escape
+             * a delimiter with a backslash (`\*not italic\*`) to send it literally.
+             *
+             * The styling travels in the message's attributed body, so the stored `text` and the
+             * `text` returned on reads and webhooks is always the plain string the recipient sees,
+             * with the delimiters removed. The Markdown itself comes back as `formatted_text`,
+             * re-serialized into a normalized spelling rather than echoed verbatim (`__bold__`
+             * returns as `**bold**`).
+             *
+             * Only valid on Blooio iMessage channels — `400 format_unsupported_for_channel_type` on
+             * any other channel type, since no other channel type has a rich-text equivalent and
+             * would otherwise deliver your delimiters as literal text. Rich text also requires the
+             * message to be delivered over iMessage: a Blooio send that falls back to SMS arrives
+             * as unstyled plain text (the `text` string), because SMS cannot carry styling.
+             *
+             * Applies to a text send and to `parts`. Rejected with `400 invalid_content` when
+             * combined with `attachments` — a media caption is not a styled bubble, so send the
+             * media and the styled text as two messages — when set without `text` or `parts`, when
+             * the Markdown source exceeds 20000 characters, or when it compiles to more than 256
+             * distinct formatting ranges.
+             */
+            fun format(format: Format) = format(JsonField.of(format))
+
+            /**
+             * Sets [Builder.format] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.format] with a well-typed [Format] value instead.
+             * This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun format(format: JsonField<Format>) = apply { this.format = format }
 
             /**
              * E.164 phone number to send from. For Twilio API keys, this is optional — if omitted,
@@ -1258,6 +1458,7 @@ private constructor(
                 Body(
                     (attachments ?: JsonMissing.of()).map { it.toImmutable() },
                     effect,
+                    format,
                     fromNumber,
                     linkPreview,
                     (parts ?: JsonMissing.of()).map { it.toImmutable() },
@@ -1287,6 +1488,7 @@ private constructor(
 
             attachments().ifPresent { it.forEach { it.validate() } }
             effect().ifPresent { it.validate() }
+            format().ifPresent { it.validate() }
             fromNumber()
             linkPreview().ifPresent { it.validate() }
             parts().ifPresent { it.forEach { it.validate() } }
@@ -1315,6 +1517,7 @@ private constructor(
         internal fun validity(): Int =
             (attachments.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
                 (effect.asKnown().getOrNull()?.validity() ?: 0) +
+                (format.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (fromNumber.asKnown().isPresent) 1 else 0) +
                 (linkPreview.asKnown().getOrNull()?.validity() ?: 0) +
                 (parts.asKnown().getOrNull()?.sumOf { it.validity().toInt() } ?: 0) +
@@ -1331,6 +1534,7 @@ private constructor(
             return other is Body &&
                 attachments == other.attachments &&
                 effect == other.effect &&
+                format == other.format &&
                 fromNumber == other.fromNumber &&
                 linkPreview == other.linkPreview &&
                 parts == other.parts &&
@@ -1345,6 +1549,7 @@ private constructor(
             Objects.hash(
                 attachments,
                 effect,
+                format,
                 fromNumber,
                 linkPreview,
                 parts,
@@ -1359,7 +1564,7 @@ private constructor(
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Body{attachments=$attachments, effect=$effect, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, replyTo=$replyTo, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
+            "Body{attachments=$attachments, effect=$effect, format=$format, fromNumber=$fromNumber, linkPreview=$linkPreview, parts=$parts, replyTo=$replyTo, shareContact=$shareContact, text=$text, useTypingIndicator=$useTypingIndicator, additionalProperties=$additionalProperties}"
     }
 
     /** URL to the attachment */
@@ -2013,6 +2218,176 @@ private constructor(
             }
 
             return other is Effect && value == other.value
+        }
+
+        override fun hashCode() = value.hashCode()
+
+        override fun toString() = value.toString()
+    }
+
+    /**
+     * How to interpret `text` (and each `parts[].text`). Defaults to `plain`, which sends the
+     * string exactly as given.
+     *
+     * With `markdown`, four constructs are parsed and delivered as real iMessage rich text — the
+     * recipient sees styled text, not delimiters:
+     *
+     * | Construct     | Syntax                   |
+     * |---------------|--------------------------|
+     * | Bold          | `**bold**` or `__bold__` |
+     * | Italic        | `*italic*` or `_italic_` |
+     * | Underline     | `++underline++`          |
+     * | Strikethrough | `~~strike~~`             |
+     *
+     * They nest freely (`**bold and _italic_**`). Everything else Markdown can express — headings,
+     * lists, links, code spans, blockquotes, images — is NOT styling iMessage can carry, so it is
+     * passed through as literal characters: `[Blooio](https://blooio.com)` is delivered with its
+     * brackets and URL intact, and `# Heading` keeps its `#`. Escape a delimiter with a backslash
+     * (`\*not italic\*`) to send it literally.
+     *
+     * The styling travels in the message's attributed body, so the stored `text` and the `text`
+     * returned on reads and webhooks is always the plain string the recipient sees, with the
+     * delimiters removed. The Markdown itself comes back as `formatted_text`, re-serialized into a
+     * normalized spelling rather than echoed verbatim (`__bold__` returns as `**bold**`).
+     *
+     * Only valid on Blooio iMessage channels — `400 format_unsupported_for_channel_type` on any
+     * other channel type, since no other channel type has a rich-text equivalent and would
+     * otherwise deliver your delimiters as literal text. Rich text also requires the message to be
+     * delivered over iMessage: a Blooio send that falls back to SMS arrives as unstyled plain text
+     * (the `text` string), because SMS cannot carry styling.
+     *
+     * Applies to a text send and to `parts`. Rejected with `400 invalid_content` when combined with
+     * `attachments` — a media caption is not a styled bubble, so send the media and the styled text
+     * as two messages — when set without `text` or `parts`, when the Markdown source exceeds 20000
+     * characters, or when it compiles to more than 256 distinct formatting ranges.
+     */
+    class Format @JsonCreator private constructor(private val value: JsonField<String>) : Enum {
+
+        /**
+         * Returns this class instance's raw value.
+         *
+         * This is usually only useful if this instance was deserialized from data that doesn't
+         * match any known member, and you want to know that value. For example, if the SDK is on an
+         * older version than the API, then the API may respond with new members that the SDK is
+         * unaware of.
+         */
+        @com.fasterxml.jackson.annotation.JsonValue fun _value(): JsonField<String> = value
+
+        companion object {
+
+            @JvmField val PLAIN = of("plain")
+
+            @JvmField val MARKDOWN = of("markdown")
+
+            @JvmStatic fun of(value: String) = Format(JsonField.of(value))
+        }
+
+        /** An enum containing [Format]'s known values. */
+        enum class Known {
+            PLAIN,
+            MARKDOWN,
+        }
+
+        /**
+         * An enum containing [Format]'s known values, as well as an [_UNKNOWN] member.
+         *
+         * An instance of [Format] can contain an unknown value in a couple of cases:
+         * - It was deserialized from data that doesn't match any known member. For example, if the
+         *   SDK is on an older version than the API, then the API may respond with new members that
+         *   the SDK is unaware of.
+         * - It was constructed with an arbitrary value using the [of] method.
+         */
+        enum class Value {
+            PLAIN,
+            MARKDOWN,
+            /** An enum member indicating that [Format] was instantiated with an unknown value. */
+            _UNKNOWN,
+        }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value, or [Value._UNKNOWN]
+         * if the class was instantiated with an unknown value.
+         *
+         * Use the [known] method instead if you're certain the value is always known or if you want
+         * to throw for the unknown case.
+         */
+        fun value(): Value =
+            when (this) {
+                PLAIN -> Value.PLAIN
+                MARKDOWN -> Value.MARKDOWN
+                else -> Value._UNKNOWN
+            }
+
+        /**
+         * Returns an enum member corresponding to this class instance's value.
+         *
+         * Use the [value] method instead if you're uncertain the value is always known and don't
+         * want to throw for the unknown case.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value is a not a known
+         *   member.
+         */
+        fun known(): Known =
+            when (this) {
+                PLAIN -> Known.PLAIN
+                MARKDOWN -> Known.MARKDOWN
+                else -> throw BlooioInvalidDataException("Unknown Format: $value")
+            }
+
+        /**
+         * Returns this class instance's primitive wire representation.
+         *
+         * This differs from the [toString] method because that method is primarily for debugging
+         * and generally doesn't throw.
+         *
+         * @throws BlooioInvalidDataException if this class instance's value does not have the
+         *   expected primitive type.
+         */
+        fun asString(): String =
+            _value().asString().orElseThrow { BlooioInvalidDataException("Value is not a String") }
+
+        private var validated: Boolean = false
+
+        /**
+         * Validates that the types of all values in this object match their expected types
+         * recursively.
+         *
+         * This method is _not_ forwards compatible with new types from the API for existing fields.
+         *
+         * @throws BlooioInvalidDataException if any value type in this object doesn't match its
+         *   expected type.
+         */
+        fun validate(): Format = apply {
+            if (validated) {
+                return@apply
+            }
+
+            known()
+            validated = true
+        }
+
+        fun isValid(): Boolean =
+            try {
+                validate()
+                true
+            } catch (e: BlooioInvalidDataException) {
+                false
+            }
+
+        /**
+         * Returns a score indicating how many valid values are contained in this object
+         * recursively.
+         *
+         * Used for best match union deserialization.
+         */
+        @JvmSynthetic internal fun validity(): Int = if (value() == Value._UNKNOWN) 0 else 1
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) {
+                return true
+            }
+
+            return other is Format && value == other.value
         }
 
         override fun hashCode() = value.hashCode()
