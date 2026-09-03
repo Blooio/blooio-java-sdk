@@ -2,18 +2,18 @@
 
 <!-- x-release-please-start-version -->
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.blooio.api/blooio-java)](https://central.sonatype.com/artifact/com.blooio.api/blooio-java/0.0.4)
-[![javadoc](https://javadoc.io/badge2/com.blooio.api/blooio-java/0.0.4/javadoc.svg)](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4)
+[![Maven Central](https://img.shields.io/maven-central/v/com.blooio.api/blooio-java)](https://central.sonatype.com/artifact/com.blooio.api/blooio-java/0.1.0)
+[![javadoc](https://javadoc.io/badge2/com.blooio.api/blooio-java/javadoc.svg)](https://javadoc.io/doc/com.blooio.api/blooio-java/0.1.0)
 
 <!-- x-release-please-end -->
 
-The Blooio Java SDK provides convenient access to the Blooio REST API from applications written in Java.
+The Blooio Java SDK provides convenient access to the [Blooio REST API](https://blooio.com) from applications written in Java.
 
 It is generated with [Stainless](https://www.stainless.com/).
 
 <!-- x-release-please-start-version -->
 
-Javadocs are available on [javadoc.io](https://javadoc.io/doc/com.blooio.api/blooio-java/0.0.4).
+The REST API documentation can be found on [blooio.com](https://blooio.com). Javadocs are available on [javadoc.io](https://javadoc.io/doc/com.blooio.api/blooio-java/0.1.0).
 
 <!-- x-release-please-end -->
 
@@ -24,7 +24,7 @@ Javadocs are available on [javadoc.io](https://javadoc.io/doc/com.blooio.api/blo
 ### Gradle
 
 ```kotlin
-implementation("com.blooio.api:blooio-java:0.0.4")
+implementation("com.blooio.api:blooio-java:0.1.0")
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation("com.blooio.api:blooio-java:0.0.4")
 <dependency>
   <groupId>com.blooio.api</groupId>
   <artifactId>blooio-java</artifactId>
-  <version>0.0.4</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -98,10 +98,10 @@ BlooioClient client = BlooioOkHttpClient.builder()
 
 See this table for the available options:
 
-| Setter    | System property  | Environment variable | Required | Default value                  |
-| --------- | ---------------- | -------------------- | -------- | ------------------------------ |
-| `apiKey`  | `blooio.apiKey`  | `BLOOIO_API_KEY`     | true     | -                              |
-| `baseUrl` | `blooio.baseUrl` | `BLOOIO_BASE_URL`    | true     | `"https://backend.blooio.com"` |
+| Setter    | System property  | Environment variable | Required | Default value                         |
+| --------- | ---------------- | -------------------- | -------- | ------------------------------------- |
+| `apiKey`  | `blooio.apiKey`  | `BLOOIO_API_KEY`     | true     | -                                     |
+| `baseUrl` | `blooio.baseUrl` | `BLOOIO_BASE_URL`    | true     | `"https://backend.blooio.com/v2/api"` |
 
 System properties take precedence over environment variables.
 
@@ -174,6 +174,70 @@ CompletableFuture<MeRetrieveResponse> me = client.me().retrieve();
 
 The asynchronous client supports the same options as the synchronous one, except most methods return `CompletableFuture`s.
 
+## File uploads
+
+The SDK defines methods that accept files.
+
+To upload a file, pass a [`Path`](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html):
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.nio.file.Paths;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(Paths.get("/path/to/file"))
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Or an arbitrary [`InputStream`](https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html):
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.net.URL;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(new URL("https://example.com//path/to/file").openStream())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Or a `byte[]` array:
+
+```java
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon("content".getBytes())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
+Note that when passing a non-`Path` its filename is unknown so it will not be included in the request. To manually set a filename, pass a [`MultipartField`](blooio-java-core/src/main/kotlin/com/blooio/api/core/Values.kt):
+
+```java
+import com.blooio.api.core.MultipartField;
+import com.blooio.api.models.groups.icon.GroupIcon;
+import com.blooio.api.models.groups.icon.IconSetParams;
+import java.io.InputStream;
+import java.net.URL;
+
+IconSetParams params = IconSetParams.builder()
+    .groupId("grp_abc123def456")
+    .icon(MultipartField.<InputStream>builder()
+        .value(new URL("https://example.com//path/to/file").openStream())
+        .filename("/path/to/file")
+        .build())
+    .build();
+GroupIcon groupIcon = client.groups().icon().set(params);
+```
+
 ## Raw responses
 
 The SDK defines methods that deserialize responses into instances of Java classes. However, these methods don't provide access to the response headers, status code, or the raw response body.
@@ -227,8 +291,6 @@ The SDK throws custom unchecked exception types:
 
 ## Logging
 
-The SDK uses the standard [OkHttp logging interceptor](https://github.com/square/okhttp/tree/master/okhttp-logging-interceptor).
-
 Enable logging by setting the `BLOOIO_LOG` environment variable to `info`:
 
 ```sh
@@ -239,6 +301,19 @@ Or to `debug` for more verbose logging:
 
 ```sh
 export BLOOIO_LOG=debug
+```
+
+Or configure the client manually using the `logLevel` method:
+
+```java
+import com.blooio.api.client.BlooioClient;
+import com.blooio.api.client.okhttp.BlooioOkHttpClient;
+import com.blooio.api.core.LogLevel;
+
+BlooioClient client = BlooioOkHttpClient.builder()
+    .fromEnv()
+    .logLevel(LogLevel.INFO)
+    .build();
 ```
 
 ## ProGuard and R8
@@ -257,6 +332,8 @@ If the SDK threw an exception, but you're _certain_ the version is compatible, t
 
 > [!CAUTION]
 > We make no guarantee that the SDK works correctly when the Jackson version check is disabled.
+
+Also note that there are bugs in older Jackson versions that can affect the SDK. We don't work around all Jackson bugs ([example](https://github.com/FasterXML/jackson-databind/issues/3240)) and expect users to upgrade Jackson for those instead.
 
 ## Network options
 
@@ -330,6 +407,40 @@ BlooioClient client = BlooioOkHttpClient.builder()
     ))
     .build();
 ```
+
+If the proxy responds with `407 Proxy Authentication Required`, supply credentials by also configuring `proxyAuthenticator`:
+
+```java
+import com.blooio.api.client.BlooioClient;
+import com.blooio.api.client.okhttp.BlooioOkHttpClient;
+import com.blooio.api.core.http.ProxyAuthenticator;
+
+BlooioClient client = BlooioOkHttpClient.builder()
+    .fromEnv()
+    .proxy(...)
+    // Or a custom implementation of `ProxyAuthenticator`.
+    .proxyAuthenticator(ProxyAuthenticator.basic("username", "password"))
+    .build();
+```
+
+### Connection pooling
+
+To customize the underlying OkHttp connection pool, configure the client using the `maxIdleConnections` and `keepAliveDuration` methods:
+
+```java
+import com.blooio.api.client.BlooioClient;
+import com.blooio.api.client.okhttp.BlooioOkHttpClient;
+import java.time.Duration;
+
+BlooioClient client = BlooioOkHttpClient.builder()
+    .fromEnv()
+    // If `maxIdleConnections` is set, then `keepAliveDuration` must be set, and vice versa.
+    .maxIdleConnections(10)
+    .keepAliveDuration(Duration.ofMinutes(2))
+    .build();
+```
+
+If both options are unset, OkHttp's default connection pool settings are used.
 
 ### HTTPS
 
@@ -409,6 +520,21 @@ MeRetrieveParams params = MeRetrieveParams.builder()
 
 These can be accessed on the built object later using the `_additionalHeaders()`, `_additionalQueryParams()`, and `_additionalBodyProperties()` methods.
 
+To set undocumented parameters on _nested_ headers, query params, or body classes, call the `putAdditionalProperty` method on the nested class:
+
+```java
+import com.blooio.api.core.JsonValue;
+import com.blooio.api.models.me.numbers.contactcard.ContactCardUpdateParams;
+
+ContactCardUpdateParams params = ContactCardUpdateParams.builder()
+    .sharing(ContactCardUpdateParams.Sharing.builder()
+        .putAdditionalProperty("secretProperty", JsonValue.from("42"))
+        .build())
+    .build();
+```
+
+These properties can be accessed on the nested built object later using the `_additionalProperties()` method.
+
 To set a documented parameter or property to an undocumented or not yet supported _value_, pass a [`JsonValue`](blooio-java-core/src/main/kotlin/com/blooio/api/core/Values.kt) object to its setter:
 
 ```java
@@ -462,11 +588,11 @@ To forcibly omit a required parameter or property, pass [`JsonMissing`](blooio-j
 
 ```java
 import com.blooio.api.core.JsonMissing;
-import com.blooio.api.models.contacts.ContactCheckCapabilitiesParams;
 import com.blooio.api.models.me.MeRetrieveParams;
+import com.blooio.api.models.me.numbers.contactcard.ContactCardRetrieveParams;
 
-MeRetrieveParams params = ContactCheckCapabilitiesParams.builder()
-    .contact(JsonMissing.of())
+MeRetrieveParams params = ContactCardRetrieveParams.builder()
+    .number(JsonMissing.of())
     .build();
 ```
 
@@ -530,7 +656,9 @@ In rare cases, the API may return a response that doesn't match the expected typ
 
 By default, the SDK will not throw an exception in this case. It will throw [`BlooioInvalidDataException`](blooio-java-core/src/main/kotlin/com/blooio/api/errors/BlooioInvalidDataException.kt) only if you directly access the property.
 
-If you would prefer to check that the response is completely well-typed upfront, then either call `validate()`:
+Validating the response is _not_ forwards compatible with new types from the API for existing fields.
+
+If you would still prefer to check that the response is completely well-typed upfront, then either call `validate()`:
 
 ```java
 import com.blooio.api.models.me.MeRetrieveResponse;

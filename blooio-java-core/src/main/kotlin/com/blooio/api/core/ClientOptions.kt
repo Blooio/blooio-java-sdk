@@ -4,6 +4,7 @@ package com.blooio.api.core
 
 import com.blooio.api.core.http.Headers
 import com.blooio.api.core.http.HttpClient
+import com.blooio.api.core.http.LoggingHttpClient
 import com.blooio.api.core.http.PhantomReachableClosingHttpClient
 import com.blooio.api.core.http.QueryParams
 import com.blooio.api.core.http.RetryingHttpClient
@@ -66,6 +67,9 @@ private constructor(
     /**
      * Whether to call `validate` on every response before returning it.
      *
+     * Setting this to `true` is _not_ forwards compatible with new types from the API for existing
+     * fields.
+     *
      * Defaults to false, which means the shape of the response will not be validated upfront.
      * Instead, validation will only occur for the parts of the response that are accessed.
      */
@@ -93,7 +97,15 @@ private constructor(
      * Defaults to 2.
      */
     @get:JvmName("maxRetries") val maxRetries: Int,
-    /** API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`. */
+    /**
+     * The level at which to log request and response information.
+     *
+     * [fromEnv] will set the level from environment variables. See [LogLevel.fromEnv].
+     *
+     * Defaults to [LogLevel.fromEnv].
+     */
+    @get:JvmName("logLevel") val logLevel: LogLevel,
+    /** API key authentication. Use your API key as the bearer token. */
     @get:JvmName("apiKey") val apiKey: String,
 ) {
 
@@ -106,7 +118,7 @@ private constructor(
     /**
      * The base URL to use for every request.
      *
-     * Defaults to the production environment: `https://backend.blooio.com`.
+     * Defaults to the production environment: `https://backend.blooio.com/v2/api`.
      */
     fun baseUrl(): String = baseUrl ?: PRODUCTION_URL
 
@@ -114,7 +126,7 @@ private constructor(
 
     companion object {
 
-        const val PRODUCTION_URL = "https://backend.blooio.com"
+        const val PRODUCTION_URL = "https://backend.blooio.com/v2/api"
 
         /**
          * Returns a mutable builder for constructing an instance of [ClientOptions].
@@ -149,6 +161,7 @@ private constructor(
         private var responseValidation: Boolean = false
         private var timeout: Timeout = Timeout.default()
         private var maxRetries: Int = 2
+        private var logLevel: LogLevel = LogLevel.fromEnv()
         private var apiKey: String? = null
 
         @JvmSynthetic
@@ -164,6 +177,7 @@ private constructor(
             responseValidation = clientOptions.responseValidation
             timeout = clientOptions.timeout
             maxRetries = clientOptions.maxRetries
+            logLevel = clientOptions.logLevel
             apiKey = clientOptions.apiKey
         }
 
@@ -220,7 +234,7 @@ private constructor(
         /**
          * The base URL to use for every request.
          *
-         * Defaults to the production environment: `https://backend.blooio.com`.
+         * Defaults to the production environment: `https://backend.blooio.com/v2/api`.
          */
         fun baseUrl(baseUrl: String?) = apply { this.baseUrl = baseUrl }
 
@@ -229,6 +243,9 @@ private constructor(
 
         /**
          * Whether to call `validate` on every response before returning it.
+         *
+         * Setting this to `true` is _not_ forwards compatible with new types from the API for
+         * existing fields.
          *
          * Defaults to false, which means the shape of the response will not be validated upfront.
          * Instead, validation will only occur for the parts of the response that are accessed.
@@ -271,7 +288,16 @@ private constructor(
          */
         fun maxRetries(maxRetries: Int) = apply { this.maxRetries = maxRetries }
 
-        /** API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`. */
+        /**
+         * The level at which to log request and response information.
+         *
+         * [fromEnv] will set the level from environment variables. See [LogLevel.fromEnv].
+         *
+         * Defaults to [LogLevel.fromEnv].
+         */
+        fun logLevel(logLevel: LogLevel) = apply { this.logLevel = logLevel }
+
+        /** API key authentication. Use your API key as the bearer token. */
         fun apiKey(apiKey: String) = apply { this.apiKey = apiKey }
 
         fun headers(headers: Headers) = apply {
@@ -361,19 +387,28 @@ private constructor(
          *
          * See this table for the available options:
          *
-         * |Setter   |System property |Environment variable|Required|Default value                 |
-         * |---------|----------------|--------------------|--------|------------------------------|
-         * |`apiKey` |`blooio.apiKey` |`BLOOIO_API_KEY`    |true    |-                             |
-         * |`baseUrl`|`blooio.baseUrl`|`BLOOIO_BASE_URL`   |true    |`"https://backend.blooio.com"`|
+         * |Setter   |System property |Environment variable|Required|Default value                        |
+         * |---------|----------------|--------------------|--------|-------------------------------------|
+         * |`apiKey` |`blooio.apiKey` |`BLOOIO_API_KEY`    |true    |-                                    |
+         * |`baseUrl`|`blooio.baseUrl`|`BLOOIO_BASE_URL`   |true    |`"https://backend.blooio.com/v2/api"`|
          *
          * System properties take precedence over environment variables.
          */
         fun fromEnv() = apply {
+            logLevel(LogLevel.fromEnv())
             (System.getProperty("blooio.baseUrl") ?: System.getenv("BLOOIO_BASE_URL"))?.let {
                 baseUrl(it)
             }
             (System.getProperty("blooio.apiKey") ?: System.getenv("BLOOIO_API_KEY"))?.let {
                 apiKey(it)
+            }
+            System.getenv("BLOOIO_CUSTOM_HEADERS")?.let { customHeadersEnv ->
+                for (line in customHeadersEnv.split("\n")) {
+                    val colon = line.indexOf(':')
+                    if (colon >= 0) {
+                        putHeader(line.substring(0, colon).trim(), line.substring(colon + 1).trim())
+                    }
+                }
             }
         }
 
@@ -404,18 +439,26 @@ private constructor(
             headers.put("X-Stainless-Package-Version", getPackageVersion())
             headers.put("X-Stainless-Runtime", "JRE")
             headers.put("X-Stainless-Runtime-Version", getJavaVersion())
-            apiKey.let {
-                if (!it.isEmpty()) {
-                    headers.put("Authorization", "Bearer $it")
-                }
-            }
+            headers.put("X-Stainless-Kotlin-Version", KotlinVersion.CURRENT.toString())
+            // We replace after all the default headers to allow end-users to overwrite them.
             headers.replaceAll(this.headers.build())
             queryParams.replaceAll(this.queryParams.build())
+            apiKey.let {
+                if (!it.isEmpty()) {
+                    headers.replace("Authorization", "Bearer $it")
+                }
+            }
 
             return ClientOptions(
                 httpClient,
                 RetryingHttpClient.builder()
-                    .httpClient(httpClient)
+                    .httpClient(
+                        LoggingHttpClient.builder()
+                            .httpClient(httpClient)
+                            .clock(clock)
+                            .level(logLevel)
+                            .build()
+                    )
                     .sleeper(sleeper)
                     .clock(clock)
                     .maxRetries(maxRetries)
@@ -430,6 +473,7 @@ private constructor(
                 responseValidation,
                 timeout,
                 maxRetries,
+                logLevel,
                 apiKey,
             )
         }

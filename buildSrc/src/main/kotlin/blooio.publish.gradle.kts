@@ -9,9 +9,9 @@ configure<PublishingExtension> {
             from(components["java"])
 
             pom {
-                name.set("Blooio Messaging API (v3)")
-                description.set("Public HTTP API for sending and managing iMessage/SMS messages through Blooio.\nAll endpoints are prefixed with `/v1/api` and secured with a Bearer API key.")
-                url.set("https://www.github.com/Blooio/blooio-java-sdk")
+                name.set("Blooio API v2")
+                description.set("RESTful API for iMessage automation. Send messages, manage contacts, groups, and\nwebhooks.")
+                url.set("https://blooio.com")
 
                 licenses {
                     license {
@@ -22,6 +22,7 @@ configure<PublishingExtension> {
                 developers {
                     developer {
                         name.set("Blooio")
+                        email.set("support@blooio.com")
                     }
                 }
 
@@ -36,6 +37,14 @@ configure<PublishingExtension> {
                         fromResolutionResult()
                     }
                 }
+            }
+        }
+    }
+    repositories {
+        if (project.hasProperty("publishLocal")) {
+            maven {
+                name = "LocalFileSystem"
+                url = uri("${rootProject.layout.buildDirectory.get()}/local-maven-repo")
             }
         }
     }

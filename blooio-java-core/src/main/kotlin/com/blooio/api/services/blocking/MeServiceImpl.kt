@@ -16,24 +16,32 @@ import com.blooio.api.core.http.parseable
 import com.blooio.api.core.prepare
 import com.blooio.api.models.me.MeRetrieveParams
 import com.blooio.api.models.me.MeRetrieveResponse
+import com.blooio.api.services.blocking.me.NumberService
+import com.blooio.api.services.blocking.me.NumberServiceImpl
 import java.util.function.Consumer
 
+/** Authentication and account information */
 class MeServiceImpl internal constructor(private val clientOptions: ClientOptions) : MeService {
 
     private val withRawResponse: MeService.WithRawResponse by lazy {
         WithRawResponseImpl(clientOptions)
     }
 
+    private val numbers: NumberService by lazy { NumberServiceImpl(clientOptions) }
+
     override fun withRawResponse(): MeService.WithRawResponse = withRawResponse
 
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeService =
         MeServiceImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Manage phone numbers linked to your account */
+    override fun numbers(): NumberService = numbers
+
     override fun retrieve(
         params: MeRetrieveParams,
         requestOptions: RequestOptions,
     ): MeRetrieveResponse =
-        // get /v1/api/me
+        // get /me
         withRawResponse().retrieve(params, requestOptions).parse()
 
     class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :
@@ -42,12 +50,19 @@ class MeServiceImpl internal constructor(private val clientOptions: ClientOption
         private val errorHandler: Handler<HttpResponse> =
             errorHandler(errorBodyHandler(clientOptions.jsonMapper))
 
+        private val numbers: NumberService.WithRawResponse by lazy {
+            NumberServiceImpl.WithRawResponseImpl(clientOptions)
+        }
+
         override fun withOptions(
             modifier: Consumer<ClientOptions.Builder>
         ): MeService.WithRawResponse =
             MeServiceImpl.WithRawResponseImpl(
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
+
+        /** Manage phone numbers linked to your account */
+        override fun numbers(): NumberService.WithRawResponse = numbers
 
         private val retrieveHandler: Handler<MeRetrieveResponse> =
             jsonHandler<MeRetrieveResponse>(clientOptions.jsonMapper)
@@ -60,7 +75,7 @@ class MeServiceImpl internal constructor(private val clientOptions: ClientOption
                 HttpRequest.builder()
                     .method(HttpMethod.GET)
                     .baseUrl(clientOptions.baseUrl())
-                    .addPathSegments("v1", "api", "me")
+                    .addPathSegments("me")
                     .build()
                     .prepare(clientOptions, params)
             val requestOptions = requestOptions.applyDefaults(RequestOptions.from(clientOptions))

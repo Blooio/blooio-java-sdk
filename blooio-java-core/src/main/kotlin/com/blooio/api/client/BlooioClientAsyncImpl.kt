@@ -4,16 +4,22 @@ package com.blooio.api.client
 
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.getPackageVersion
-import com.blooio.api.services.async.BatchServiceAsync
-import com.blooio.api.services.async.BatchServiceAsyncImpl
-import com.blooio.api.services.async.ConfigServiceAsync
-import com.blooio.api.services.async.ConfigServiceAsyncImpl
+import com.blooio.api.services.async.ChatServiceAsync
+import com.blooio.api.services.async.ChatServiceAsyncImpl
 import com.blooio.api.services.async.ContactServiceAsync
 import com.blooio.api.services.async.ContactServiceAsyncImpl
+import com.blooio.api.services.async.FacetimeServiceAsync
+import com.blooio.api.services.async.FacetimeServiceAsyncImpl
+import com.blooio.api.services.async.GroupServiceAsync
+import com.blooio.api.services.async.GroupServiceAsyncImpl
+import com.blooio.api.services.async.LocationServiceAsync
+import com.blooio.api.services.async.LocationServiceAsyncImpl
 import com.blooio.api.services.async.MeServiceAsync
 import com.blooio.api.services.async.MeServiceAsyncImpl
-import com.blooio.api.services.async.MessageServiceAsync
-import com.blooio.api.services.async.MessageServiceAsyncImpl
+import com.blooio.api.services.async.PhoneNumberServiceAsync
+import com.blooio.api.services.async.PhoneNumberServiceAsyncImpl
+import com.blooio.api.services.async.WebhookServiceAsync
+import com.blooio.api.services.async.WebhookServiceAsyncImpl
 import java.util.function.Consumer
 
 class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioClientAsync {
@@ -39,16 +45,26 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
         ContactServiceAsyncImpl(clientOptionsWithUserAgent)
     }
 
-    private val messages: MessageServiceAsync by lazy {
-        MessageServiceAsyncImpl(clientOptionsWithUserAgent)
+    private val location: LocationServiceAsync by lazy {
+        LocationServiceAsyncImpl(clientOptionsWithUserAgent)
     }
 
-    private val config: ConfigServiceAsync by lazy {
-        ConfigServiceAsyncImpl(clientOptionsWithUserAgent)
+    private val facetime: FacetimeServiceAsync by lazy {
+        FacetimeServiceAsyncImpl(clientOptionsWithUserAgent)
     }
 
-    private val batches: BatchServiceAsync by lazy {
-        BatchServiceAsyncImpl(clientOptionsWithUserAgent)
+    private val groups: GroupServiceAsync by lazy {
+        GroupServiceAsyncImpl(clientOptionsWithUserAgent)
+    }
+
+    private val webhooks: WebhookServiceAsync by lazy {
+        WebhookServiceAsyncImpl(clientOptionsWithUserAgent)
+    }
+
+    private val chats: ChatServiceAsync by lazy { ChatServiceAsyncImpl(clientOptionsWithUserAgent) }
+
+    private val phoneNumbers: PhoneNumberServiceAsync by lazy {
+        PhoneNumberServiceAsyncImpl(clientOptionsWithUserAgent)
     }
 
     override fun sync(): BlooioClient = sync
@@ -58,15 +74,30 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClientAsync =
         BlooioClientAsyncImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Authentication and account information */
     override fun me(): MeServiceAsync = me
 
+    /** Manage contacts (phone numbers and emails) */
     override fun contacts(): ContactServiceAsync = contacts
 
-    override fun messages(): MessageServiceAsync = messages
+    override fun location(): LocationServiceAsync = location
 
-    override fun config(): ConfigServiceAsync = config
+    /** Initiate FaceTime calls */
+    override fun facetime(): FacetimeServiceAsync = facetime
 
-    override fun batches(): BatchServiceAsync = batches
+    /** Manage contact groups */
+    override fun groups(): GroupServiceAsync = groups
+
+    /** Manage webhook subscriptions */
+    override fun webhooks(): WebhookServiceAsync = webhooks
+
+    override fun chats(): ChatServiceAsync = chats
+
+    /**
+     * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+     * (Dedicated Enterprise).
+     */
+    override fun phoneNumbers(): PhoneNumberServiceAsync = phoneNumbers
 
     override fun close() = clientOptions.close()
 
@@ -81,16 +112,28 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
             ContactServiceAsyncImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val messages: MessageServiceAsync.WithRawResponse by lazy {
-            MessageServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        private val location: LocationServiceAsync.WithRawResponse by lazy {
+            LocationServiceAsyncImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val config: ConfigServiceAsync.WithRawResponse by lazy {
-            ConfigServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        private val facetime: FacetimeServiceAsync.WithRawResponse by lazy {
+            FacetimeServiceAsyncImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val batches: BatchServiceAsync.WithRawResponse by lazy {
-            BatchServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        private val groups: GroupServiceAsync.WithRawResponse by lazy {
+            GroupServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val webhooks: WebhookServiceAsync.WithRawResponse by lazy {
+            WebhookServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val chats: ChatServiceAsync.WithRawResponse by lazy {
+            ChatServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val phoneNumbers: PhoneNumberServiceAsync.WithRawResponse by lazy {
+            PhoneNumberServiceAsyncImpl.WithRawResponseImpl(clientOptions)
         }
 
         override fun withOptions(
@@ -100,14 +143,29 @@ class BlooioClientAsyncImpl(private val clientOptions: ClientOptions) : BlooioCl
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
+        /** Authentication and account information */
         override fun me(): MeServiceAsync.WithRawResponse = me
 
+        /** Manage contacts (phone numbers and emails) */
         override fun contacts(): ContactServiceAsync.WithRawResponse = contacts
 
-        override fun messages(): MessageServiceAsync.WithRawResponse = messages
+        override fun location(): LocationServiceAsync.WithRawResponse = location
 
-        override fun config(): ConfigServiceAsync.WithRawResponse = config
+        /** Initiate FaceTime calls */
+        override fun facetime(): FacetimeServiceAsync.WithRawResponse = facetime
 
-        override fun batches(): BatchServiceAsync.WithRawResponse = batches
+        /** Manage contact groups */
+        override fun groups(): GroupServiceAsync.WithRawResponse = groups
+
+        /** Manage webhook subscriptions */
+        override fun webhooks(): WebhookServiceAsync.WithRawResponse = webhooks
+
+        override fun chats(): ChatServiceAsync.WithRawResponse = chats
+
+        /**
+         * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+         * (Dedicated Enterprise).
+         */
+        override fun phoneNumbers(): PhoneNumberServiceAsync.WithRawResponse = phoneNumbers
     }
 }

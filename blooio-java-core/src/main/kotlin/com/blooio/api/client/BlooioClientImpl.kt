@@ -4,16 +4,22 @@ package com.blooio.api.client
 
 import com.blooio.api.core.ClientOptions
 import com.blooio.api.core.getPackageVersion
-import com.blooio.api.services.blocking.BatchService
-import com.blooio.api.services.blocking.BatchServiceImpl
-import com.blooio.api.services.blocking.ConfigService
-import com.blooio.api.services.blocking.ConfigServiceImpl
+import com.blooio.api.services.blocking.ChatService
+import com.blooio.api.services.blocking.ChatServiceImpl
 import com.blooio.api.services.blocking.ContactService
 import com.blooio.api.services.blocking.ContactServiceImpl
+import com.blooio.api.services.blocking.FacetimeService
+import com.blooio.api.services.blocking.FacetimeServiceImpl
+import com.blooio.api.services.blocking.GroupService
+import com.blooio.api.services.blocking.GroupServiceImpl
+import com.blooio.api.services.blocking.LocationService
+import com.blooio.api.services.blocking.LocationServiceImpl
 import com.blooio.api.services.blocking.MeService
 import com.blooio.api.services.blocking.MeServiceImpl
-import com.blooio.api.services.blocking.MessageService
-import com.blooio.api.services.blocking.MessageServiceImpl
+import com.blooio.api.services.blocking.PhoneNumberService
+import com.blooio.api.services.blocking.PhoneNumberServiceImpl
+import com.blooio.api.services.blocking.WebhookService
+import com.blooio.api.services.blocking.WebhookServiceImpl
 import java.util.function.Consumer
 
 class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient {
@@ -37,11 +43,23 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
 
     private val contacts: ContactService by lazy { ContactServiceImpl(clientOptionsWithUserAgent) }
 
-    private val messages: MessageService by lazy { MessageServiceImpl(clientOptionsWithUserAgent) }
+    private val location: LocationService by lazy {
+        LocationServiceImpl(clientOptionsWithUserAgent)
+    }
 
-    private val config: ConfigService by lazy { ConfigServiceImpl(clientOptionsWithUserAgent) }
+    private val facetime: FacetimeService by lazy {
+        FacetimeServiceImpl(clientOptionsWithUserAgent)
+    }
 
-    private val batches: BatchService by lazy { BatchServiceImpl(clientOptionsWithUserAgent) }
+    private val groups: GroupService by lazy { GroupServiceImpl(clientOptionsWithUserAgent) }
+
+    private val webhooks: WebhookService by lazy { WebhookServiceImpl(clientOptionsWithUserAgent) }
+
+    private val chats: ChatService by lazy { ChatServiceImpl(clientOptionsWithUserAgent) }
+
+    private val phoneNumbers: PhoneNumberService by lazy {
+        PhoneNumberServiceImpl(clientOptionsWithUserAgent)
+    }
 
     override fun async(): BlooioClientAsync = async
 
@@ -50,15 +68,30 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient =
         BlooioClientImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Authentication and account information */
     override fun me(): MeService = me
 
+    /** Manage contacts (phone numbers and emails) */
     override fun contacts(): ContactService = contacts
 
-    override fun messages(): MessageService = messages
+    override fun location(): LocationService = location
 
-    override fun config(): ConfigService = config
+    /** Initiate FaceTime calls */
+    override fun facetime(): FacetimeService = facetime
 
-    override fun batches(): BatchService = batches
+    /** Manage contact groups */
+    override fun groups(): GroupService = groups
+
+    /** Manage webhook subscriptions */
+    override fun webhooks(): WebhookService = webhooks
+
+    override fun chats(): ChatService = chats
+
+    /**
+     * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+     * (Dedicated Enterprise).
+     */
+    override fun phoneNumbers(): PhoneNumberService = phoneNumbers
 
     override fun close() = clientOptions.close()
 
@@ -73,16 +106,28 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
             ContactServiceImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val messages: MessageService.WithRawResponse by lazy {
-            MessageServiceImpl.WithRawResponseImpl(clientOptions)
+        private val location: LocationService.WithRawResponse by lazy {
+            LocationServiceImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val config: ConfigService.WithRawResponse by lazy {
-            ConfigServiceImpl.WithRawResponseImpl(clientOptions)
+        private val facetime: FacetimeService.WithRawResponse by lazy {
+            FacetimeServiceImpl.WithRawResponseImpl(clientOptions)
         }
 
-        private val batches: BatchService.WithRawResponse by lazy {
-            BatchServiceImpl.WithRawResponseImpl(clientOptions)
+        private val groups: GroupService.WithRawResponse by lazy {
+            GroupServiceImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val webhooks: WebhookService.WithRawResponse by lazy {
+            WebhookServiceImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val chats: ChatService.WithRawResponse by lazy {
+            ChatServiceImpl.WithRawResponseImpl(clientOptions)
+        }
+
+        private val phoneNumbers: PhoneNumberService.WithRawResponse by lazy {
+            PhoneNumberServiceImpl.WithRawResponseImpl(clientOptions)
         }
 
         override fun withOptions(
@@ -92,14 +137,29 @@ class BlooioClientImpl(private val clientOptions: ClientOptions) : BlooioClient 
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
 
+        /** Authentication and account information */
         override fun me(): MeService.WithRawResponse = me
 
+        /** Manage contacts (phone numbers and emails) */
         override fun contacts(): ContactService.WithRawResponse = contacts
 
-        override fun messages(): MessageService.WithRawResponse = messages
+        override fun location(): LocationService.WithRawResponse = location
 
-        override fun config(): ConfigService.WithRawResponse = config
+        /** Initiate FaceTime calls */
+        override fun facetime(): FacetimeService.WithRawResponse = facetime
 
-        override fun batches(): BatchService.WithRawResponse = batches
+        /** Manage contact groups */
+        override fun groups(): GroupService.WithRawResponse = groups
+
+        /** Manage webhook subscriptions */
+        override fun webhooks(): WebhookService.WithRawResponse = webhooks
+
+        override fun chats(): ChatService.WithRawResponse = chats
+
+        /**
+         * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+         * (Dedicated Enterprise).
+         */
+        override fun phoneNumbers(): PhoneNumberService.WithRawResponse = phoneNumbers
     }
 }

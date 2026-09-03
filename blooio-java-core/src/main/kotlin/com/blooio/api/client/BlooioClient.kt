@@ -3,11 +3,14 @@
 package com.blooio.api.client
 
 import com.blooio.api.core.ClientOptions
-import com.blooio.api.services.blocking.BatchService
-import com.blooio.api.services.blocking.ConfigService
+import com.blooio.api.services.blocking.ChatService
 import com.blooio.api.services.blocking.ContactService
+import com.blooio.api.services.blocking.FacetimeService
+import com.blooio.api.services.blocking.GroupService
+import com.blooio.api.services.blocking.LocationService
 import com.blooio.api.services.blocking.MeService
-import com.blooio.api.services.blocking.MessageService
+import com.blooio.api.services.blocking.PhoneNumberService
+import com.blooio.api.services.blocking.WebhookService
 import java.util.function.Consumer
 
 /**
@@ -46,15 +49,30 @@ interface BlooioClient {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient
 
+    /** Authentication and account information */
     fun me(): MeService
 
+    /** Manage contacts (phone numbers and emails) */
     fun contacts(): ContactService
 
-    fun messages(): MessageService
+    fun location(): LocationService
 
-    fun config(): ConfigService
+    /** Initiate FaceTime calls */
+    fun facetime(): FacetimeService
 
-    fun batches(): BatchService
+    /** Manage contact groups */
+    fun groups(): GroupService
+
+    /** Manage webhook subscriptions */
+    fun webhooks(): WebhookService
+
+    fun chats(): ChatService
+
+    /**
+     * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+     * (Dedicated Enterprise).
+     */
+    fun phoneNumbers(): PhoneNumberService
 
     /**
      * Closes this client, relinquishing any underlying resources.
@@ -79,14 +97,29 @@ interface BlooioClient {
          */
         fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClient.WithRawResponse
 
+        /** Authentication and account information */
         fun me(): MeService.WithRawResponse
 
+        /** Manage contacts (phone numbers and emails) */
         fun contacts(): ContactService.WithRawResponse
 
-        fun messages(): MessageService.WithRawResponse
+        fun location(): LocationService.WithRawResponse
 
-        fun config(): ConfigService.WithRawResponse
+        /** Initiate FaceTime calls */
+        fun facetime(): FacetimeService.WithRawResponse
 
-        fun batches(): BatchService.WithRawResponse
+        /** Manage contact groups */
+        fun groups(): GroupService.WithRawResponse
+
+        /** Manage webhook subscriptions */
+        fun webhooks(): WebhookService.WithRawResponse
+
+        fun chats(): ChatService.WithRawResponse
+
+        /**
+         * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+         * (Dedicated Enterprise).
+         */
+        fun phoneNumbers(): PhoneNumberService.WithRawResponse
     }
 }

@@ -3,11 +3,14 @@
 package com.blooio.api.client
 
 import com.blooio.api.core.ClientOptions
-import com.blooio.api.services.async.BatchServiceAsync
-import com.blooio.api.services.async.ConfigServiceAsync
+import com.blooio.api.services.async.ChatServiceAsync
 import com.blooio.api.services.async.ContactServiceAsync
+import com.blooio.api.services.async.FacetimeServiceAsync
+import com.blooio.api.services.async.GroupServiceAsync
+import com.blooio.api.services.async.LocationServiceAsync
 import com.blooio.api.services.async.MeServiceAsync
-import com.blooio.api.services.async.MessageServiceAsync
+import com.blooio.api.services.async.PhoneNumberServiceAsync
+import com.blooio.api.services.async.WebhookServiceAsync
 import java.util.function.Consumer
 
 /**
@@ -46,15 +49,30 @@ interface BlooioClientAsync {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): BlooioClientAsync
 
+    /** Authentication and account information */
     fun me(): MeServiceAsync
 
+    /** Manage contacts (phone numbers and emails) */
     fun contacts(): ContactServiceAsync
 
-    fun messages(): MessageServiceAsync
+    fun location(): LocationServiceAsync
 
-    fun config(): ConfigServiceAsync
+    /** Initiate FaceTime calls */
+    fun facetime(): FacetimeServiceAsync
 
-    fun batches(): BatchServiceAsync
+    /** Manage contact groups */
+    fun groups(): GroupServiceAsync
+
+    /** Manage webhook subscriptions */
+    fun webhooks(): WebhookServiceAsync
+
+    fun chats(): ChatServiceAsync
+
+    /**
+     * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+     * (Dedicated Enterprise).
+     */
+    fun phoneNumbers(): PhoneNumberServiceAsync
 
     /**
      * Closes this client, relinquishing any underlying resources.
@@ -81,14 +99,29 @@ interface BlooioClientAsync {
             modifier: Consumer<ClientOptions.Builder>
         ): BlooioClientAsync.WithRawResponse
 
+        /** Authentication and account information */
         fun me(): MeServiceAsync.WithRawResponse
 
+        /** Manage contacts (phone numbers and emails) */
         fun contacts(): ContactServiceAsync.WithRawResponse
 
-        fun messages(): MessageServiceAsync.WithRawResponse
+        fun location(): LocationServiceAsync.WithRawResponse
 
-        fun config(): ConfigServiceAsync.WithRawResponse
+        /** Initiate FaceTime calls */
+        fun facetime(): FacetimeServiceAsync.WithRawResponse
 
-        fun batches(): BatchServiceAsync.WithRawResponse
+        /** Manage contact groups */
+        fun groups(): GroupServiceAsync.WithRawResponse
+
+        /** Manage webhook subscriptions */
+        fun webhooks(): WebhookServiceAsync.WithRawResponse
+
+        fun chats(): ChatServiceAsync.WithRawResponse
+
+        /**
+         * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan
+         * (Dedicated Enterprise).
+         */
+        fun phoneNumbers(): PhoneNumberServiceAsync.WithRawResponse
     }
 }

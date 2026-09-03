@@ -9,7 +9,7 @@ repositories {
 
 allprojects {
     group = "com.blooio.api"
-    version = "0.0.4" // x-release-please-version
+    version = "0.1.0" // x-release-please-version
 }
 
 subprojects {
@@ -22,7 +22,6 @@ subprojects {
         group = "Verification"
         description = "Verifies all source files are formatted."
     }
-    apply(plugin = "org.jetbrains.dokka")
 }
 
 subprojects {

@@ -7,9 +7,11 @@ import com.blooio.api.core.RequestOptions
 import com.blooio.api.core.http.HttpResponseFor
 import com.blooio.api.models.me.MeRetrieveParams
 import com.blooio.api.models.me.MeRetrieveResponse
+import com.blooio.api.services.async.me.NumberServiceAsync
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Authentication and account information */
 interface MeServiceAsync {
 
     /**
@@ -24,9 +26,12 @@ interface MeServiceAsync {
      */
     fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeServiceAsync
 
+    /** Manage phone numbers linked to your account */
+    fun numbers(): NumberServiceAsync
+
     /**
-     * Returns information about the authenticated API key including plan, devices, usage
-     * statistics, and integration details.
+     * Returns details about the authenticated API key or dashboard user, including organization
+     * info, devices, and usage statistics.
      */
     fun retrieve(): CompletableFuture<MeRetrieveResponse> = retrieve(MeRetrieveParams.none())
 
@@ -55,8 +60,11 @@ interface MeServiceAsync {
          */
         fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeServiceAsync.WithRawResponse
 
+        /** Manage phone numbers linked to your account */
+        fun numbers(): NumberServiceAsync.WithRawResponse
+
         /**
-         * Returns a raw HTTP response for `get /v1/api/me`, but is otherwise the same as
+         * Returns a raw HTTP response for `get /me`, but is otherwise the same as
          * [MeServiceAsync.retrieve].
          */
         fun retrieve(): CompletableFuture<HttpResponseFor<MeRetrieveResponse>> =

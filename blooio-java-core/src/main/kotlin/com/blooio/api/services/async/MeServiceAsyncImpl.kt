@@ -16,9 +16,12 @@ import com.blooio.api.core.http.parseable
 import com.blooio.api.core.prepareAsync
 import com.blooio.api.models.me.MeRetrieveParams
 import com.blooio.api.models.me.MeRetrieveResponse
+import com.blooio.api.services.async.me.NumberServiceAsync
+import com.blooio.api.services.async.me.NumberServiceAsyncImpl
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
+/** Authentication and account information */
 class MeServiceAsyncImpl internal constructor(private val clientOptions: ClientOptions) :
     MeServiceAsync {
 
@@ -26,16 +29,21 @@ class MeServiceAsyncImpl internal constructor(private val clientOptions: ClientO
         WithRawResponseImpl(clientOptions)
     }
 
+    private val numbers: NumberServiceAsync by lazy { NumberServiceAsyncImpl(clientOptions) }
+
     override fun withRawResponse(): MeServiceAsync.WithRawResponse = withRawResponse
 
     override fun withOptions(modifier: Consumer<ClientOptions.Builder>): MeServiceAsync =
         MeServiceAsyncImpl(clientOptions.toBuilder().apply(modifier::accept).build())
 
+    /** Manage phone numbers linked to your account */
+    override fun numbers(): NumberServiceAsync = numbers
+
     override fun retrieve(
         params: MeRetrieveParams,
         requestOptions: RequestOptions,
     ): CompletableFuture<MeRetrieveResponse> =
-        // get /v1/api/me
+        // get /me
         withRawResponse().retrieve(params, requestOptions).thenApply { it.parse() }
 
     class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :
@@ -44,12 +52,19 @@ class MeServiceAsyncImpl internal constructor(private val clientOptions: ClientO
         private val errorHandler: Handler<HttpResponse> =
             errorHandler(errorBodyHandler(clientOptions.jsonMapper))
 
+        private val numbers: NumberServiceAsync.WithRawResponse by lazy {
+            NumberServiceAsyncImpl.WithRawResponseImpl(clientOptions)
+        }
+
         override fun withOptions(
             modifier: Consumer<ClientOptions.Builder>
         ): MeServiceAsync.WithRawResponse =
             MeServiceAsyncImpl.WithRawResponseImpl(
                 clientOptions.toBuilder().apply(modifier::accept).build()
             )
+
+        /** Manage phone numbers linked to your account */
+        override fun numbers(): NumberServiceAsync.WithRawResponse = numbers
 
         private val retrieveHandler: Handler<MeRetrieveResponse> =
             jsonHandler<MeRetrieveResponse>(clientOptions.jsonMapper)
@@ -62,7 +77,7 @@ class MeServiceAsyncImpl internal constructor(private val clientOptions: ClientO
                 HttpRequest.builder()
                     .method(HttpMethod.GET)
                     .baseUrl(clientOptions.baseUrl())
-                    .addPathSegments("v1", "api", "me")
+                    .addPathSegments("me")
                     .build()
                     .prepareAsync(clientOptions, params)
             val requestOptions = requestOptions.applyDefaults(RequestOptions.from(clientOptions))

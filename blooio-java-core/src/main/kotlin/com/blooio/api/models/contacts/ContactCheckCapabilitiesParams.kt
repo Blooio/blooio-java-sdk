@@ -9,18 +9,15 @@ import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-/**
- * Check if a phone number or email address supports iMessage, SMS, RCS, and other messaging
- * capabilities.
- */
+/** Check if a contact supports iMessage and/or SMS. */
 class ContactCheckCapabilitiesParams
 private constructor(
-    private val contact: String?,
+    private val contactId: String?,
     private val additionalHeaders: Headers,
     private val additionalQueryParams: QueryParams,
 ) : Params {
 
-    fun contact(): Optional<String> = Optional.ofNullable(contact)
+    fun contactId(): Optional<String> = Optional.ofNullable(contactId)
 
     /** Additional headers to send with the request. */
     fun _additionalHeaders(): Headers = additionalHeaders
@@ -44,21 +41,21 @@ private constructor(
     /** A builder for [ContactCheckCapabilitiesParams]. */
     class Builder internal constructor() {
 
-        private var contact: String? = null
+        private var contactId: String? = null
         private var additionalHeaders: Headers.Builder = Headers.builder()
         private var additionalQueryParams: QueryParams.Builder = QueryParams.builder()
 
         @JvmSynthetic
         internal fun from(contactCheckCapabilitiesParams: ContactCheckCapabilitiesParams) = apply {
-            contact = contactCheckCapabilitiesParams.contact
+            contactId = contactCheckCapabilitiesParams.contactId
             additionalHeaders = contactCheckCapabilitiesParams.additionalHeaders.toBuilder()
             additionalQueryParams = contactCheckCapabilitiesParams.additionalQueryParams.toBuilder()
         }
 
-        fun contact(contact: String?) = apply { this.contact = contact }
+        fun contactId(contactId: String?) = apply { this.contactId = contactId }
 
-        /** Alias for calling [Builder.contact] with `contact.orElse(null)`. */
-        fun contact(contact: Optional<String>) = contact(contact.getOrNull())
+        /** Alias for calling [Builder.contactId] with `contactId.orElse(null)`. */
+        fun contactId(contactId: Optional<String>) = contactId(contactId.getOrNull())
 
         fun additionalHeaders(additionalHeaders: Headers) = apply {
             this.additionalHeaders.clear()
@@ -165,7 +162,7 @@ private constructor(
          */
         fun build(): ContactCheckCapabilitiesParams =
             ContactCheckCapabilitiesParams(
-                contact,
+                contactId,
                 additionalHeaders.build(),
                 additionalQueryParams.build(),
             )
@@ -173,7 +170,7 @@ private constructor(
 
     fun _pathParam(index: Int): String =
         when (index) {
-            0 -> contact ?: ""
+            0 -> contactId ?: ""
             else -> ""
         }
 
@@ -187,13 +184,13 @@ private constructor(
         }
 
         return other is ContactCheckCapabilitiesParams &&
-            contact == other.contact &&
+            contactId == other.contactId &&
             additionalHeaders == other.additionalHeaders &&
             additionalQueryParams == other.additionalQueryParams
     }
 
-    override fun hashCode(): Int = Objects.hash(contact, additionalHeaders, additionalQueryParams)
+    override fun hashCode(): Int = Objects.hash(contactId, additionalHeaders, additionalQueryParams)
 
     override fun toString() =
-        "ContactCheckCapabilitiesParams{contact=$contact, additionalHeaders=$additionalHeaders, additionalQueryParams=$additionalQueryParams}"
+        "ContactCheckCapabilitiesParams{contactId=$contactId, additionalHeaders=$additionalHeaders, additionalQueryParams=$additionalQueryParams}"
 }
