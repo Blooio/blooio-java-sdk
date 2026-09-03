@@ -102,6 +102,7 @@ internal class MessageServiceTest {
                     .idempotencyKey("Idempotency-Key")
                     .addAttachment("string")
                     .effect(MessageSendParams.Effect.SLAM)
+                    .format(MessageSendParams.Format.PLAIN)
                     .fromNumber("from_number")
                     .linkPreview(
                         LinkPreview.builder().imageUrl("https://example.com").title("title").build()

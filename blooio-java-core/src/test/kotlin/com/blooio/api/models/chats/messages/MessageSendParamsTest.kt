@@ -16,6 +16,7 @@ internal class MessageSendParamsTest {
             .idempotencyKey("Idempotency-Key")
             .addAttachment("string")
             .effect(MessageSendParams.Effect.SLAM)
+            .format(MessageSendParams.Format.PLAIN)
             .fromNumber("from_number")
             .linkPreview(
                 LinkPreview.builder().imageUrl("https://example.com").title("title").build()
@@ -61,6 +62,7 @@ internal class MessageSendParamsTest {
                 .idempotencyKey("Idempotency-Key")
                 .addAttachment("string")
                 .effect(MessageSendParams.Effect.SLAM)
+                .format(MessageSendParams.Format.PLAIN)
                 .fromNumber("from_number")
                 .linkPreview(
                     LinkPreview.builder().imageUrl("https://example.com").title("title").build()
@@ -114,6 +116,7 @@ internal class MessageSendParamsTest {
                 .idempotencyKey("Idempotency-Key")
                 .addAttachment("string")
                 .effect(MessageSendParams.Effect.SLAM)
+                .format(MessageSendParams.Format.PLAIN)
                 .fromNumber("from_number")
                 .linkPreview(
                     LinkPreview.builder().imageUrl("https://example.com").title("title").build()
@@ -149,6 +152,7 @@ internal class MessageSendParamsTest {
         assertThat(body.attachments().getOrNull())
             .containsExactly(MessageSendParams.Attachment.ofString("string"))
         assertThat(body.effect()).contains(MessageSendParams.Effect.SLAM)
+        assertThat(body.format()).contains(MessageSendParams.Format.PLAIN)
         assertThat(body.fromNumber()).contains("from_number")
         assertThat(body.linkPreview())
             .contains(LinkPreview.builder().imageUrl("https://example.com").title("title").build())

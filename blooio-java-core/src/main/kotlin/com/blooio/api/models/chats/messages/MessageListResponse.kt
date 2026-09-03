@@ -242,6 +242,7 @@ private constructor(
         private val direction: JsonField<Direction>,
         private val error: JsonField<String>,
         private val externalId: JsonField<String>,
+        private val formattedText: JsonField<String>,
         private val internalId: JsonField<String>,
         private val messageId: JsonField<String>,
         private val protocol: JsonField<Protocol>,
@@ -267,6 +268,9 @@ private constructor(
             @JsonProperty("external_id")
             @ExcludeMissing
             externalId: JsonField<String> = JsonMissing.of(),
+            @JsonProperty("formatted_text")
+            @ExcludeMissing
+            formattedText: JsonField<String> = JsonMissing.of(),
             @JsonProperty("internal_id")
             @ExcludeMissing
             internalId: JsonField<String> = JsonMissing.of(),
@@ -294,6 +298,7 @@ private constructor(
             direction,
             error,
             externalId,
+            formattedText,
             internalId,
             messageId,
             protocol,
@@ -332,6 +337,26 @@ private constructor(
          *   server responded with an unexpected value).
          */
         fun externalId(): Optional<String> = externalId.getOptional("external_id")
+
+        /**
+         * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted entirely
+         * when the message carries no styling, so its presence is how you detect rich text.
+         *
+         * Present in both directions: on an outbound send made with `format: "markdown"`, and on an
+         * inbound iMessage whose sender styled their text — so styling a customer applied in
+         * Messages arrives here even though your integration never asked for it.
+         *
+         * Always a normalized re-serialization of the message's actual styling rather than an echo
+         * of the source string: bold is spelled `**`, italic `*`, underline `++`, strikethrough
+         * `~~`, and any character that would otherwise read as a delimiter is backslash-escaped.
+         * Re-sending this value verbatim with `format: "markdown"` reproduces the same styled
+         * message. Blooio iMessage only. This is the SAME field delivered on the message webhooks,
+         * so a message reads identically via REST or webhook.
+         *
+         * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+         *   server responded with an unexpected value).
+         */
+        fun formattedText(): Optional<String> = formattedText.getOptional("formatted_text")
 
         /**
          * Organization phone number (from-number) used for this message
@@ -452,6 +477,16 @@ private constructor(
         fun _externalId(): JsonField<String> = externalId
 
         /**
+         * Returns the raw JSON value of [formattedText].
+         *
+         * Unlike [formattedText], this method doesn't throw if the JSON field has an unexpected
+         * type.
+         */
+        @JsonProperty("formatted_text")
+        @ExcludeMissing
+        fun _formattedText(): JsonField<String> = formattedText
+
+        /**
          * Returns the raw JSON value of [internalId].
          *
          * Unlike [internalId], this method doesn't throw if the JSON field has an unexpected type.
@@ -553,6 +588,7 @@ private constructor(
             private var direction: JsonField<Direction> = JsonMissing.of()
             private var error: JsonField<String> = JsonMissing.of()
             private var externalId: JsonField<String> = JsonMissing.of()
+            private var formattedText: JsonField<String> = JsonMissing.of()
             private var internalId: JsonField<String> = JsonMissing.of()
             private var messageId: JsonField<String> = JsonMissing.of()
             private var protocol: JsonField<Protocol> = JsonMissing.of()
@@ -571,6 +607,7 @@ private constructor(
                 direction = message.direction
                 error = message.error
                 externalId = message.externalId
+                formattedText = message.formattedText
                 internalId = message.internalId
                 messageId = message.messageId
                 protocol = message.protocol
@@ -645,6 +682,36 @@ private constructor(
              * supported value.
              */
             fun externalId(externalId: JsonField<String>) = apply { this.externalId = externalId }
+
+            /**
+             * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted
+             * entirely when the message carries no styling, so its presence is how you detect rich
+             * text.
+             *
+             * Present in both directions: on an outbound send made with `format: "markdown"`, and
+             * on an inbound iMessage whose sender styled their text — so styling a customer applied
+             * in Messages arrives here even though your integration never asked for it.
+             *
+             * Always a normalized re-serialization of the message's actual styling rather than an
+             * echo of the source string: bold is spelled `**`, italic `*`, underline `++`,
+             * strikethrough `~~`, and any character that would otherwise read as a delimiter is
+             * backslash-escaped. Re-sending this value verbatim with `format: "markdown"`
+             * reproduces the same styled message. Blooio iMessage only. This is the SAME field
+             * delivered on the message webhooks, so a message reads identically via REST or
+             * webhook.
+             */
+            fun formattedText(formattedText: String) = formattedText(JsonField.of(formattedText))
+
+            /**
+             * Sets [Builder.formattedText] to an arbitrary JSON value.
+             *
+             * You should usually call [Builder.formattedText] with a well-typed [String] value
+             * instead. This method is primarily for setting the field to an undocumented or not yet
+             * supported value.
+             */
+            fun formattedText(formattedText: JsonField<String>) = apply {
+                this.formattedText = formattedText
+            }
 
             /** Organization phone number (from-number) used for this message */
             fun internalId(internalId: String?) = internalId(JsonField.ofNullable(internalId))
@@ -855,6 +922,7 @@ private constructor(
                     direction,
                     error,
                     externalId,
+                    formattedText,
                     internalId,
                     messageId,
                     protocol,
@@ -889,6 +957,7 @@ private constructor(
             direction().ifPresent { it.validate() }
             error()
             externalId()
+            formattedText()
             internalId()
             messageId()
             protocol().ifPresent { it.validate() }
@@ -922,6 +991,7 @@ private constructor(
                 (direction.asKnown().getOrNull()?.validity() ?: 0) +
                 (if (error.asKnown().isPresent) 1 else 0) +
                 (if (externalId.asKnown().isPresent) 1 else 0) +
+                (if (formattedText.asKnown().isPresent) 1 else 0) +
                 (if (internalId.asKnown().isPresent) 1 else 0) +
                 (if (messageId.asKnown().isPresent) 1 else 0) +
                 (protocol.asKnown().getOrNull()?.validity() ?: 0) +
@@ -1708,6 +1778,7 @@ private constructor(
                 direction == other.direction &&
                 error == other.error &&
                 externalId == other.externalId &&
+                formattedText == other.formattedText &&
                 internalId == other.internalId &&
                 messageId == other.messageId &&
                 protocol == other.protocol &&
@@ -1727,6 +1798,7 @@ private constructor(
                 direction,
                 error,
                 externalId,
+                formattedText,
                 internalId,
                 messageId,
                 protocol,
@@ -1744,7 +1816,7 @@ private constructor(
         override fun hashCode(): Int = hashCode
 
         override fun toString() =
-            "Message{attachments=$attachments, direction=$direction, error=$error, externalId=$externalId, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, replyTo=$replyTo, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
+            "Message{attachments=$attachments, direction=$direction, error=$error, externalId=$externalId, formattedText=$formattedText, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, replyTo=$replyTo, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
     }
 
     override fun equals(other: Any?): Boolean {

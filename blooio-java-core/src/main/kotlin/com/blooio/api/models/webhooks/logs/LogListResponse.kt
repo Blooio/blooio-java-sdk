@@ -666,6 +666,7 @@ private constructor(
             private val errorMessage: JsonField<String>,
             private val event: JsonField<String>,
             private val externalId: JsonField<String>,
+            private val formattedText: JsonField<String>,
             private val groupId: JsonField<String>,
             private val groupName: JsonField<String>,
             private val internalId: JsonField<String>,
@@ -706,6 +707,9 @@ private constructor(
                 @JsonProperty("external_id")
                 @ExcludeMissing
                 externalId: JsonField<String> = JsonMissing.of(),
+                @JsonProperty("formatted_text")
+                @ExcludeMissing
+                formattedText: JsonField<String> = JsonMissing.of(),
                 @JsonProperty("group_id")
                 @ExcludeMissing
                 groupId: JsonField<String> = JsonMissing.of(),
@@ -748,6 +752,7 @@ private constructor(
                 errorMessage,
                 event,
                 externalId,
+                formattedText,
                 groupId,
                 groupName,
                 internalId,
@@ -833,6 +838,28 @@ private constructor(
              *   the server responded with an unexpected value).
              */
             fun externalId(): Optional<String> = externalId.getOptional("external_id")
+
+            /**
+             * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted
+             * entirely when the message carries no styling, so its presence is how you detect rich
+             * text.
+             *
+             * Present in both directions: on an outbound send made with `format: "markdown"`, and
+             * on an inbound iMessage whose sender styled their text — so styling a customer applied
+             * in Messages arrives here even though your integration never asked for it.
+             *
+             * Always a normalized re-serialization of the message's actual styling rather than an
+             * echo of the source string: bold is spelled `**`, italic `*`, underline `++`,
+             * strikethrough `~~`, and any character that would otherwise read as a delimiter is
+             * backslash-escaped. Re-sending this value verbatim with `format: "markdown"`
+             * reproduces the same styled message. Blooio iMessage only. This is the SAME field
+             * delivered on the message webhooks, so a message reads identically via REST or
+             * webhook.
+             *
+             * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if
+             *   the server responded with an unexpected value).
+             */
+            fun formattedText(): Optional<String> = formattedText.getOptional("formatted_text")
 
             /**
              * Group ID (only present when is_group=true)
@@ -1023,6 +1050,16 @@ private constructor(
             fun _externalId(): JsonField<String> = externalId
 
             /**
+             * Returns the raw JSON value of [formattedText].
+             *
+             * Unlike [formattedText], this method doesn't throw if the JSON field has an unexpected
+             * type.
+             */
+            @JsonProperty("formatted_text")
+            @ExcludeMissing
+            fun _formattedText(): JsonField<String> = formattedText
+
+            /**
              * Returns the raw JSON value of [groupId].
              *
              * Unlike [groupId], this method doesn't throw if the JSON field has an unexpected type.
@@ -1158,6 +1195,7 @@ private constructor(
                 private var errorMessage: JsonField<String> = JsonMissing.of()
                 private var event: JsonField<String> = JsonMissing.of()
                 private var externalId: JsonField<String> = JsonMissing.of()
+                private var formattedText: JsonField<String> = JsonMissing.of()
                 private var groupId: JsonField<String> = JsonMissing.of()
                 private var groupName: JsonField<String> = JsonMissing.of()
                 private var internalId: JsonField<String> = JsonMissing.of()
@@ -1183,6 +1221,7 @@ private constructor(
                     errorMessage = eventBody.errorMessage
                     event = eventBody.event
                     externalId = eventBody.externalId
+                    formattedText = eventBody.formattedText
                     groupId = eventBody.groupId
                     groupName = eventBody.groupName
                     internalId = eventBody.internalId
@@ -1355,6 +1394,37 @@ private constructor(
                  */
                 fun externalId(externalId: JsonField<String>) = apply {
                     this.externalId = externalId
+                }
+
+                /**
+                 * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted
+                 * entirely when the message carries no styling, so its presence is how you detect
+                 * rich text.
+                 *
+                 * Present in both directions: on an outbound send made with `format: "markdown"`,
+                 * and on an inbound iMessage whose sender styled their text — so styling a customer
+                 * applied in Messages arrives here even though your integration never asked for it.
+                 *
+                 * Always a normalized re-serialization of the message's actual styling rather than
+                 * an echo of the source string: bold is spelled `**`, italic `*`, underline `++`,
+                 * strikethrough `~~`, and any character that would otherwise read as a delimiter is
+                 * backslash-escaped. Re-sending this value verbatim with `format: "markdown"`
+                 * reproduces the same styled message. Blooio iMessage only. This is the SAME field
+                 * delivered on the message webhooks, so a message reads identically via REST or
+                 * webhook.
+                 */
+                fun formattedText(formattedText: String) =
+                    formattedText(JsonField.of(formattedText))
+
+                /**
+                 * Sets [Builder.formattedText] to an arbitrary JSON value.
+                 *
+                 * You should usually call [Builder.formattedText] with a well-typed [String] value
+                 * instead. This method is primarily for setting the field to an undocumented or not
+                 * yet supported value.
+                 */
+                fun formattedText(formattedText: JsonField<String>) = apply {
+                    this.formattedText = formattedText
                 }
 
                 /** Group ID (only present when is_group=true) */
@@ -1623,6 +1693,7 @@ private constructor(
                         errorMessage,
                         event,
                         externalId,
+                        formattedText,
                         groupId,
                         groupName,
                         internalId,
@@ -1665,6 +1736,7 @@ private constructor(
                 errorMessage()
                 event()
                 externalId()
+                formattedText()
                 groupId()
                 groupName()
                 internalId()
@@ -1705,6 +1777,7 @@ private constructor(
                     (if (errorMessage.asKnown().isPresent) 1 else 0) +
                     (if (event.asKnown().isPresent) 1 else 0) +
                     (if (externalId.asKnown().isPresent) 1 else 0) +
+                    (if (formattedText.asKnown().isPresent) 1 else 0) +
                     (if (groupId.asKnown().isPresent) 1 else 0) +
                     (if (groupName.asKnown().isPresent) 1 else 0) +
                     (if (internalId.asKnown().isPresent) 1 else 0) +
@@ -2509,6 +2582,7 @@ private constructor(
                     errorMessage == other.errorMessage &&
                     event == other.event &&
                     externalId == other.externalId &&
+                    formattedText == other.formattedText &&
                     groupId == other.groupId &&
                     groupName == other.groupName &&
                     internalId == other.internalId &&
@@ -2535,6 +2609,7 @@ private constructor(
                     errorMessage,
                     event,
                     externalId,
+                    formattedText,
                     groupId,
                     groupName,
                     internalId,
@@ -2555,7 +2630,7 @@ private constructor(
             override fun hashCode(): Int = hashCode
 
             override fun toString() =
-                "EventBody{attachments=$attachments, chatGuid=$chatGuid, chatName=$chatName, deliveredAt=$deliveredAt, errorCode=$errorCode, errorMessage=$errorMessage, event=$event, externalId=$externalId, groupId=$groupId, groupName=$groupName, internalId=$internalId, isGroup=$isGroup, messageId=$messageId, participants=$participants, protocol=$protocol, readAt=$readAt, sender=$sender, sentAt=$sentAt, status=$status, text=$text, timestamp=$timestamp, additionalProperties=$additionalProperties}"
+                "EventBody{attachments=$attachments, chatGuid=$chatGuid, chatName=$chatName, deliveredAt=$deliveredAt, errorCode=$errorCode, errorMessage=$errorMessage, event=$event, externalId=$externalId, formattedText=$formattedText, groupId=$groupId, groupName=$groupName, internalId=$internalId, isGroup=$isGroup, messageId=$messageId, participants=$participants, protocol=$protocol, readAt=$readAt, sender=$sender, sentAt=$sentAt, status=$status, text=$text, timestamp=$timestamp, additionalProperties=$additionalProperties}"
         }
 
         /** Additional metadata about the webhook delivery */

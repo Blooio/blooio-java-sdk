@@ -28,6 +28,7 @@ private constructor(
     private val contact: JsonField<Contact>,
     private val direction: JsonField<Direction>,
     private val error: JsonField<String>,
+    private val formattedText: JsonField<String>,
     private val internalId: JsonField<String>,
     private val messageId: JsonField<String>,
     private val protocol: JsonField<Protocol>,
@@ -52,6 +53,9 @@ private constructor(
         @ExcludeMissing
         direction: JsonField<Direction> = JsonMissing.of(),
         @JsonProperty("error") @ExcludeMissing error: JsonField<String> = JsonMissing.of(),
+        @JsonProperty("formatted_text")
+        @ExcludeMissing
+        formattedText: JsonField<String> = JsonMissing.of(),
         @JsonProperty("internal_id")
         @ExcludeMissing
         internalId: JsonField<String> = JsonMissing.of(),
@@ -74,6 +78,7 @@ private constructor(
         contact,
         direction,
         error,
+        formattedText,
         internalId,
         messageId,
         protocol,
@@ -116,6 +121,26 @@ private constructor(
      *   server responded with an unexpected value).
      */
     fun error(): Optional<String> = error.getOptional("error")
+
+    /**
+     * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted entirely when
+     * the message carries no styling, so its presence is how you detect rich text.
+     *
+     * Present in both directions: on an outbound send made with `format: "markdown"`, and on an
+     * inbound iMessage whose sender styled their text — so styling a customer applied in Messages
+     * arrives here even though your integration never asked for it.
+     *
+     * Always a normalized re-serialization of the message's actual styling rather than an echo of
+     * the source string: bold is spelled `**`, italic `*`, underline `++`, strikethrough `~~`, and
+     * any character that would otherwise read as a delimiter is backslash-escaped. Re-sending this
+     * value verbatim with `format: "markdown"` reproduces the same styled message. Blooio iMessage
+     * only. This is the SAME field delivered on the message webhooks, so a message reads
+     * identically via REST or webhook.
+     *
+     * @throws BlooioInvalidDataException if the JSON field has an unexpected type (e.g. if the
+     *   server responded with an unexpected value).
+     */
+    fun formattedText(): Optional<String> = formattedText.getOptional("formatted_text")
 
     /**
      * Organization phone number (from-number) used for this message
@@ -239,6 +264,15 @@ private constructor(
     @JsonProperty("error") @ExcludeMissing fun _error(): JsonField<String> = error
 
     /**
+     * Returns the raw JSON value of [formattedText].
+     *
+     * Unlike [formattedText], this method doesn't throw if the JSON field has an unexpected type.
+     */
+    @JsonProperty("formatted_text")
+    @ExcludeMissing
+    fun _formattedText(): JsonField<String> = formattedText
+
+    /**
      * Returns the raw JSON value of [internalId].
      *
      * Unlike [internalId], this method doesn't throw if the JSON field has an unexpected type.
@@ -338,6 +372,7 @@ private constructor(
         private var contact: JsonField<Contact> = JsonMissing.of()
         private var direction: JsonField<Direction> = JsonMissing.of()
         private var error: JsonField<String> = JsonMissing.of()
+        private var formattedText: JsonField<String> = JsonMissing.of()
         private var internalId: JsonField<String> = JsonMissing.of()
         private var messageId: JsonField<String> = JsonMissing.of()
         private var protocol: JsonField<Protocol> = JsonMissing.of()
@@ -357,6 +392,7 @@ private constructor(
             contact = messageRetrieveResponse.contact
             direction = messageRetrieveResponse.direction
             error = messageRetrieveResponse.error
+            formattedText = messageRetrieveResponse.formattedText
             internalId = messageRetrieveResponse.internalId
             messageId = messageRetrieveResponse.messageId
             protocol = messageRetrieveResponse.protocol
@@ -441,6 +477,34 @@ private constructor(
          * method is primarily for setting the field to an undocumented or not yet supported value.
          */
         fun error(error: JsonField<String>) = apply { this.error = error }
+
+        /**
+         * Markdown for a rich-text (bold/italic/underline/strikethrough) message. Omitted entirely
+         * when the message carries no styling, so its presence is how you detect rich text.
+         *
+         * Present in both directions: on an outbound send made with `format: "markdown"`, and on an
+         * inbound iMessage whose sender styled their text — so styling a customer applied in
+         * Messages arrives here even though your integration never asked for it.
+         *
+         * Always a normalized re-serialization of the message's actual styling rather than an echo
+         * of the source string: bold is spelled `**`, italic `*`, underline `++`, strikethrough
+         * `~~`, and any character that would otherwise read as a delimiter is backslash-escaped.
+         * Re-sending this value verbatim with `format: "markdown"` reproduces the same styled
+         * message. Blooio iMessage only. This is the SAME field delivered on the message webhooks,
+         * so a message reads identically via REST or webhook.
+         */
+        fun formattedText(formattedText: String) = formattedText(JsonField.of(formattedText))
+
+        /**
+         * Sets [Builder.formattedText] to an arbitrary JSON value.
+         *
+         * You should usually call [Builder.formattedText] with a well-typed [String] value instead.
+         * This method is primarily for setting the field to an undocumented or not yet supported
+         * value.
+         */
+        fun formattedText(formattedText: JsonField<String>) = apply {
+            this.formattedText = formattedText
+        }
 
         /** Organization phone number (from-number) used for this message */
         fun internalId(internalId: String?) = internalId(JsonField.ofNullable(internalId))
@@ -645,6 +709,7 @@ private constructor(
                 contact,
                 direction,
                 error,
+                formattedText,
                 internalId,
                 messageId,
                 protocol,
@@ -679,6 +744,7 @@ private constructor(
         contact().ifPresent { it.validate() }
         direction().ifPresent { it.validate() }
         error()
+        formattedText()
         internalId()
         messageId()
         protocol().ifPresent { it.validate() }
@@ -712,6 +778,7 @@ private constructor(
             (contact.asKnown().getOrNull()?.validity() ?: 0) +
             (direction.asKnown().getOrNull()?.validity() ?: 0) +
             (if (error.asKnown().isPresent) 1 else 0) +
+            (if (formattedText.asKnown().isPresent) 1 else 0) +
             (if (internalId.asKnown().isPresent) 1 else 0) +
             (if (messageId.asKnown().isPresent) 1 else 0) +
             (protocol.asKnown().getOrNull()?.validity() ?: 0) +
@@ -1698,6 +1765,7 @@ private constructor(
             contact == other.contact &&
             direction == other.direction &&
             error == other.error &&
+            formattedText == other.formattedText &&
             internalId == other.internalId &&
             messageId == other.messageId &&
             protocol == other.protocol &&
@@ -1718,6 +1786,7 @@ private constructor(
             contact,
             direction,
             error,
+            formattedText,
             internalId,
             messageId,
             protocol,
@@ -1735,5 +1804,5 @@ private constructor(
     override fun hashCode(): Int = hashCode
 
     override fun toString() =
-        "MessageRetrieveResponse{attachments=$attachments, chatId=$chatId, contact=$contact, direction=$direction, error=$error, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, replyTo=$replyTo, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
+        "MessageRetrieveResponse{attachments=$attachments, chatId=$chatId, contact=$contact, direction=$direction, error=$error, formattedText=$formattedText, internalId=$internalId, messageId=$messageId, protocol=$protocol, reactions=$reactions, replyTo=$replyTo, sender=$sender, status=$status, text=$text, timeDelivered=$timeDelivered, timeSent=$timeSent, additionalProperties=$additionalProperties}"
 }
